@@ -1,0 +1,12 @@
+venv/
+
+.DS_Store
+
+*.py[cod]
+
+**/__pycache__
+
+.pytest_cache/
+
+.vscode/
+.idea/
