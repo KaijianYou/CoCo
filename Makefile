@@ -19,3 +19,5 @@ db-downgrade:
 test:
 	export FLASK_APP=autoapp.py && flask test
 
+urls:
+	export FLASK_APP=autoapp.py && flask urls
