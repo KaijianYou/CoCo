@@ -28,7 +28,7 @@ SQLAlchemy = "==1.2.7"
 [dev-packages]
 pylint = "*"
 pytest = "*"
-neovim = "*"
+coverage = "*"
 
 [requires]
 python_version = "3.6"

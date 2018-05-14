@@ -3,9 +3,16 @@ import os
 import click
 
 
-HERE = os.path.abspath(os.path.dirname(__file__))
-PROJECT_ROOT = os.path.join(HERE, os.pardir)
-TEST_PATH = os.path.join(PROJECT_ROOT, 'tests')
+PARENT_NAME = os.path.dirname(__file__)
+PARENT_PATH = os.path.abspath(PARENT_NAME)
+TEST_PATH = os.path.join(PARENT_PATH, 'tests')
+
+
+COV = None
+if os.environ.get('flask_coverage', None):
+    import coverage
+    COV = coverage.coverage(branch=True, include=f'{PARENT_NAME}/*')
+    COV.start()
 
 
 @click.command()
@@ -13,3 +20,5 @@ def test():
     import pytest
     rv = pytest.main([TEST_PATH, '--verbose'])
     exit(rv)
+
+

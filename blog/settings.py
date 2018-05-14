@@ -44,9 +44,6 @@ class DevConfig(Config):
     # 在 stderr 输出生成的 SQL 语句
     SQLALCHEMY_ECHO = True
 
-    # 数据备份路径
-    DB_BACKUP_PATH = 'var/www/db_backup'
-
     def init__app(self, app):
         super().__init__(app)
 
@@ -85,9 +82,6 @@ class ProdConfig(Config):
     # 数据库配置
     SQLALCHEMY_DATABASE_URI = os.environ['COCO_DATABASE_URI']
 
-    # 数据备份路径
-    DB_BACKUP_PATH = '/var/www/db_backup/'
-
     def init_app(self, app):
         super().init_app(app)
 
@@ -95,7 +89,7 @@ class ProdConfig(Config):
         from logging.handlers import TimedRotatingFileHandler
         from logging import Formatter
 
-        file_handler = TimedRotatingFileHandler(filename='/var/www/log/coco/',
+        file_handler = TimedRotatingFileHandler(filename='/tmp/www/log/coco',
                                                 when='midnight',
                                                 interval=1,
                                                 backupCount=30)
