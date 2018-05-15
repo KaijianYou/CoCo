@@ -1,4 +1,6 @@
-from flask import Blueprint, jsonify
+from flask import Blueprint
+
+from blog.utils import generate_success_json
 
 
 blueprint = Blueprint('public', __name__)
@@ -6,4 +8,4 @@ blueprint = Blueprint('public', __name__)
 
 @blueprint.route('/', methods=['GET'])
 def index():
-    return jsonify('Hello World')
+    return generate_success_json()

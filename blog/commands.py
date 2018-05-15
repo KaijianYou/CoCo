@@ -2,14 +2,12 @@ import os
 
 from flask import current_app
 from flask.cli import with_appcontext
-from werkzeug.exceptions import MethodNotAllowed, NotFound
 import click
 
 
-PARENT_NAME = os.path.dirname(__file__)
-PARENT_PATH = os.path.abspath(PARENT_NAME)
-TEST_PATH = os.path.join(PARENT_PATH, 'tests')
-COVERAGE_PATH = os.path.join(PARENT_NAME, 'coverage')
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+TEST_PATH = os.path.join(BASE_DIR, 'tests')
+COVERAGE_PATH = os.path.join(BASE_DIR, 'coverage')
 
 
 @click.command()
@@ -18,7 +16,7 @@ def test():
     import coverage
 
     # 统计代码测试覆盖率
-    COV = coverage.coverage(branch=True, include=f'{PARENT_NAME}/*')
+    COV = coverage.coverage(branch=True, include=f'{BASE_DIR}/*')
     COV.start()
 
     rv = pytest.main([TEST_PATH, '--verbose'])
