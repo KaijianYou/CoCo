@@ -1,6 +1,6 @@
 from flask import Flask
 
-from . import commands, public
+from . import commands, public, admin
 from .extensions import db, login_manager, migrate, mail
 from .settings import config
 from .const import init_const
@@ -36,6 +36,7 @@ def register_extensions(app):
 
 def register_blueprints(app):
     app.register_blueprint(public.views.blueprint)
+    app.register_blueprint(admin.views.blueprint)
 
 
 def register_shell_context(app):
