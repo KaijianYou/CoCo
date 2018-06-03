@@ -2,7 +2,30 @@ from flask_login import UserMixin, AnonymousUserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 
 from .mixin import db, Model
-from .role import Role
+
+
+class UserPermission:
+    ADMIN = 0x1
+    COMMENT = 0x2
+    UP_DOWN_VOTE = 0x4
+
+
+class UserRole:
+    General = 1
+    ADMINISTRATOR = 2
+
+
+role_permissions = {
+    UserRole.General: (
+        UserPermission.COMMENT |
+        UserPermission.UP_DOWN_VOTE
+    ),
+    UserRole.ADMINISTRATOR: (
+        UserPermission.ADMIN |
+        UserPermission.COMMENT |
+        UserPermission.UP_DOWN_VOTE
+    )
+}
 
 
 class User(Model, UserMixin):
@@ -12,7 +35,7 @@ class User(Model, UserMixin):
     email = db.Column(db.String(32), unique=True, nullable=False)
     password_hash = db.Column(db.Binary(128), nullable=False)
     is_enable = db.Column(db.Boolean(), default=False)
-    role_id = db.Column('role_id', db.Integer, db.ForeignKey('roles.id'))
+    role = db.Column(db.Integer, default=UserRole.General)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -48,8 +71,8 @@ class User(Model, UserMixin):
         return self.is_enable and super().is_authenticated
 
     def can(self, permissions):
-        role = Role.find_by_id(self.role_id)
-        return role is not None and (role.permissions & permissions) == permissions
+        role_permission = role_permissions.get(self.role_type, None)
+        return role_permission is not None and (role_permission & permissions) == permissions
 
 
 class AnonymousUser(AnonymousUserMixin):
