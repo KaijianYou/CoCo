@@ -4,7 +4,7 @@ from threading import Thread
 from flask import jsonify, request
 from flask_login import current_user
 
-from .errors import PermissionError
+from .errors import PERMISSION_FORBIDDEN
 
 
 def async_task(func):
@@ -41,7 +41,7 @@ def permission_required(permission):
                 accept_mimetypes = request.accept_mimetypes
                 if accept_mimetypes.accept_json and \
                         not accept_mimetypes.accept_html:
-                    return generate_error_json(PermissionError.Forbidden)
+                    return generate_error_json(PERMISSION_FORBIDDEN)
                 else:
                     return jsonify('没有权限')
             return func(*args, **kwargs)

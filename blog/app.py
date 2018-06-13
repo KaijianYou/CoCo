@@ -31,7 +31,7 @@ def register_extensions(app):
     from .models.user import User
     @login_manager.user_loader
     def load_user(user_id):
-        return User.get_by_id(int(user_id))
+        return User.find_by_id(int(user_id))
 
 
 def register_blueprints(app):

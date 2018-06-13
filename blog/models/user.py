@@ -70,9 +70,9 @@ class User(Model, UserMixin):
     def is_authenticated(self):
         return self.is_enable and super().is_authenticated
 
-    def can(self, permissions):
+    def can(self, permission):
         role_permission = role_permissions.get(self.role_type, None)
-        return role_permission is not None and (role_permission & permissions) == permissions
+        return role_permission is not None and (role_permission & permission) == permission
 
 
 class AnonymousUser(AnonymousUserMixin):
