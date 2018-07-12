@@ -1,5 +1,6 @@
 from .mixin import db, Model
 from .article import Article
+from .article_tag import ArticleTag
 
 
 class Tag(Model):

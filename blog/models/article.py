@@ -14,8 +14,12 @@ class Article(Model):
     category_id = db.Column(db.Integer, db.ForeignKey('categories.id'), nullable=False)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     comments = db.relationship('Comment', backref='article', lazy='dynamic')
-    tags = db.relationship('Tag', secondary=article_tag, lazy='dynamic',
-                           backref=db.backref('articles', lazy='dynamic'))
+    tags = db.relationship(
+        'Tag',
+        secondary=article_tag,
+        lazy='dynamic',
+        backref=db.backref('articles', lazy='dynamic')
+    )
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

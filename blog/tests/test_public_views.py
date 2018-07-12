@@ -112,20 +112,21 @@ class TestCase(unittest.TestCase):
 
         self.assertEqual(article_ids_set, result_ids_set)
 
-    # def test_article_list_by_tag_id(self):
-    #     generate_fake_data(User, seed=1, total=4)
-        # generate_fake_data(Tag, seed=1, total=5)
-        # generate_fake_data(Category, seed=1, total=2)
-        # generate_fake_data(Article, seed=1, total=3)
-        # article_ids = article_tag.query.filter_by(tag_id=2).all()
-        # article_ids_set = {article_id for article_id in article_ids}
-        #
-        # url = url_for('public.article_list_by_tag_id', tag_id=2)
-        # response = self.client.get(url)
-        # json_data = response.get_json()
-        # result_ids_set = {r['id'] for r in json_data['data']['articles']}
-        #
-        # self.assertEqual(article_ids_set, result_ids_set)
+    def test_article_list_by_tag_id(self):
+        generate_fake_data(User, seed=1, total=2)
+        generate_fake_data(Tag, seed=1, total=3)
+        generate_fake_data(Category, seed=1, total=2)
+        generate_fake_data(Article, seed=1, total=6)
+        tag_id = 2
+        tag = Tag.query_by_id(tag_id, is_enable=True)
+        article_ids_set = {article.id for article in tag.articles}
+
+        url = url_for('public.article_list_by_tag_id', tag_id=tag_id)
+        response = self.client.get(url)
+        json_data = response.get_json()
+        result_ids_set = {r['id'] for r in json_data['data']['articles']}
+
+        self.assertEqual(article_ids_set, result_ids_set)
 
     def test_comment_article(self):
         user = User.create(nickname='panda', email='panda@gmail.com', password='123456')
