@@ -1,20 +1,18 @@
 from flask import Flask
 
-from . import commands, public, admin
-from .extensions import db, login_manager, migrate, mail
-from .settings import config
-from .const import init_const
+from blog.extensions import db, login_manager, migrate, mail
+from blog.settings import config
+from blog.const import init_const
 
 
 def create_app(config_env):
     app = Flask(__name__)
     app.config.from_object(config[config_env])
     config[config_env].init_app(app)
-
-    init_const(config_env)
-
+    init_const(app.config['ENV'])
     register_extensions(app)
     register_blueprints(app)
+    register_error_handler(app)
     register_shell_context(app)
     register_commands(app)
     return app
@@ -26,17 +24,38 @@ def register_extensions(app):
     migrate.init_app(app, db)
     mail.init_app(app)
 
+    from .models.user import User, AnonymousUser
     login_manager.session_protection = 'basic'
+    login_manager.anonymous_user = AnonymousUser
 
-    from .models.user import User
     @login_manager.user_loader
     def load_user(user_id):
-        return User.find_by_id(int(user_id))
+        return User.query_by_id(int(user_id))
 
 
 def register_blueprints(app):
-    app.register_blueprint(public.views.blueprint)
-    app.register_blueprint(admin.views.blueprint)
+    from blog import auth, public, admin
+    app.register_blueprint(auth.views.blueprint, url_prefix='/api/auth')
+    app.register_blueprint(public.views.blueprint, url_prefix='/api')
+    app.register_blueprint(admin.views.blueprint, url_prefix='/api/admin')
+
+
+def register_error_handler(app):
+    from blog.utils import generate_error_json
+    from blog.errors import BAD_REQUEST, PERMISSION_FORBIDDEN, UNAUTHORIZED
+
+    def bad_request(e):
+        return generate_error_json(BAD_REQUEST)
+
+    def unauthorized(e):
+        return generate_error_json(UNAUTHORIZED)
+
+    def permission_forbidden(e):
+        return generate_error_json(PERMISSION_FORBIDDEN)
+
+    app.register_error_handler(400, bad_request)
+    app.register_error_handler(401, unauthorized)
+    app.register_error_handler(403, permission_forbidden)
 
 
 def register_shell_context(app):
@@ -49,5 +68,6 @@ def register_shell_context(app):
 
 
 def register_commands(app):
+    from blog import commands
     app.cli.add_command(commands.test)
     app.cli.add_command(commands.urls)

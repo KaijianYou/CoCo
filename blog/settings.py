@@ -18,6 +18,8 @@ class Config:
     ARTICLES_PER_PAGE = 10
     COMMENTS_PER_PAGE = 10
 
+    ADMIN_EMAIL = os.environ['COCO_ADMIN_EMAIL']
+
     def init_app(self, app):
         @app.before_request
         def before_request():
@@ -55,7 +57,8 @@ class DevConfig(Config):
                 all_query_count += 1
                 all_query_duration += query.duration
             plural = "query" if all_query_count == 1 else "queries"
-            print(f'\033[92m[QUERY] {all_query_count} {plural} in {all_query_duration * 1000} ms\033[0m')
+            print(f'\033[92m[QUERY] {all_query_count} {plural} in '
+                   '{all_query_duration * 1000} ms\033[0m')
             for func in getattr(g, 'call_after_request', ()):
                 response = func(response)
             return response
@@ -89,13 +92,16 @@ class ProdConfig(Config):
         from logging.handlers import TimedRotatingFileHandler
         from logging import Formatter
 
-        file_handler = TimedRotatingFileHandler(filename='/tmp/www/log/coco',
+        file_handler = TimedRotatingFileHandler(filename='/var/log/www/coco/coco.log',
                                                 when='midnight',
                                                 interval=1,
                                                 backupCount=30)
         file_handler.setLevel(logging.WARNING)
         file_handler.suffix = '%Y-%m-%d.log'
-        formatter = Formatter('%(levelname)s %(asctime)s %(pathname)s %(filenames)s %(module)s %(funcName)s %(lineno)d: %(message)s')
+        formatter = Formatter(
+            '%(levelname)s %(asctime)s %(pathname)s %(filenames)s %(module)s '
+            '%(funcName)s %(lineno)d: %(message)s'
+        )
         file_handler.setFormatter(formatter)
         app.logger.addHandler(file_handler)
 

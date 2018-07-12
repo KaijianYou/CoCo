@@ -1,5 +1,6 @@
 from flask_login import UserMixin, AnonymousUserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy import or_
 
 from .mixin import db, Model
 
@@ -7,23 +8,20 @@ from .mixin import db, Model
 class UserPermission:
     ADMIN = 0x1
     COMMENT = 0x2
-    UP_DOWN_VOTE = 0x4
 
 
 class UserRole:
-    General = 1
+    GENERAL = 1
     ADMINISTRATOR = 2
 
 
 role_permissions = {
-    UserRole.General: (
-        UserPermission.COMMENT |
-        UserPermission.UP_DOWN_VOTE
+    UserRole.GENERAL: (
+        UserPermission.COMMENT
     ),
     UserRole.ADMINISTRATOR: (
         UserPermission.ADMIN |
-        UserPermission.COMMENT |
-        UserPermission.UP_DOWN_VOTE
+        UserPermission.COMMENT
     )
 }
 
@@ -31,17 +29,20 @@ role_permissions = {
 class User(Model, UserMixin):
     __tablename__ = 'users'
 
-    username = db.Column(db.String(32), unique=True, nullable=False)
+    nickname = db.Column(db.String(32), unique=True, nullable=False)
     email = db.Column(db.String(32), unique=True, nullable=False)
-    password_hash = db.Column(db.Binary(128), nullable=False)
-    is_enable = db.Column(db.Boolean(), default=False)
-    role = db.Column(db.Integer, default=UserRole.General)
+    password_hash = db.Column(db.String(128), nullable=False)
+    avatar_url = db.Column(db.String(512))
+    bio = db.Column(db.String(200))
+    role = db.Column(db.Integer, default=UserRole.GENERAL)
+    articles = db.relationship('Article', backref='author', lazy='dynamic')
+    comments = db.relationship('Comment', backref='author', lazy='dynamic')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def __repr__(self):
-        return f'<User({self.username!r})>'
+        return f'<User({self.nickname!r})>'
 
     def get_id(self):
         return self.id
@@ -74,7 +75,22 @@ class User(Model, UserMixin):
         role_permission = role_permissions.get(self.role_type, None)
         return role_permission is not None and (role_permission & permission) == permission
 
+    @classmethod
+    def query_by_email(cls, email, is_enable=None):
+        query = cls.query
+        if is_enable is not None:
+            query = query.filter_by(is_enable=is_enable)
+        return query.filter_by(email=email).first()
+
+    @classmethod
+    def query_by_email_or_nickname(cls, email, nickname, is_enable=None):
+        query = cls.query
+        if is_enable is not None:
+            query = query.filter_by(is_enable=is_enable)
+        return query.filter(or_(cls.email == email, cls.nickname == nickname)).first()
+
 
 class AnonymousUser(AnonymousUserMixin):
     def can(self, permissions):
         return False
+

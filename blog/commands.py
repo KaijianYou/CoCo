@@ -19,7 +19,7 @@ def test():
     COV = coverage.coverage(branch=True, include=f'{BASE_DIR}/*')
     COV.start()
 
-    rv = pytest.main([TEST_PATH, '--verbose'])
+    rv = pytest.main([TEST_PATH, '--verbose', '-s'])
 
     COV.stop()
     COV.save()

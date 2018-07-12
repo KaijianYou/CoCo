@@ -1,10 +1,5 @@
 from .mixin import db, Model
-
-
-article_tags = \
-    db.Table('article_tags',
-             db.Column('tag_id', db.Integer, db.ForeignKey('tags.id'), primary_key=True),
-             db.Column('article_id', db.Integer, db.ForeignKey('articles.id'), primary_key=True))
+from .article import Article
 
 
 class Tag(Model):
@@ -17,3 +12,13 @@ class Tag(Model):
 
     def __repr__(self):
         return f'<Tag({self.name!r})>'
+
+    def to_json(self):
+        return {
+            'name': self.name
+        }
+
+    def paginate_articles(self, order='asc', page=1, per_page=10):
+        order_param = Article.id.asc() if order == 'asc' else Article.id.desc()
+        return self.articles.order_by(order_param).paginate(page, per_page)
+
