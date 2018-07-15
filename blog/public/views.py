@@ -4,15 +4,14 @@ from datetime import timedelta
 from flask import Blueprint, request, url_for
 from flask_login import login_required, current_user
 
-from .forms import CommentArticleForm
-from blog.utils import generate_success_json, generate_error_json
+from .forms import CommentDetailForm, ArticleDetailForm
+from blog.utils import generate_success_json, generate_error_json, permission_required
 from blog.models.category import Category
-from blog.models.tag import Tag
+from blog.models.user import UserPermission
 from blog.models.article import Article
 from blog.models.comment import Comment
 from blog.const import Constant
-from blog.errors import QUERY_WORD_NOT_FOUND, ARTICLE_NOT_EXISTS, \
-    CATEGORY_NOT_EXISTS, TAG_NOT_EXISTS, ILLEGAL_FORM
+from blog.errors import *
 
 
 blueprint = Blueprint('public', __name__)
@@ -39,9 +38,14 @@ def category_list():
 
 @blueprint.route('/tags/', methods=['GET'])
 def tag_list():
-    tags = Tag.query_all(is_enable=True)
+    tags_list = Article.query_all_tags(is_enable=True)
+    tags_set = set()
+    for t in tags_list:
+        tag_list = t[0].split(',') if t[0] else []
+        for tag in tag_list:
+            tags_set.add(tag)
     result = {
-        'tags': [tag.to_json() for tag in tags]
+        'tags': list(tags_set)
     }
     return generate_success_json(result)
 
@@ -75,6 +79,8 @@ def article_detail(article_id):
     if not article:
         return generate_error_json(ARTICLE_NOT_EXISTS)
 
+    view_count = article.view_count + 1
+    article.update(view_count=view_count)
     result = {
         'article': article.to_json()
     }
@@ -114,36 +120,20 @@ def article_list_by_category_id(category_id):
     return generate_success_json(result)
 
 
-@blueprint.route('/tags/<int:tag_id>/articles/', methods=['GET'])
-def article_list_by_tag_id(tag_id):
-    tag = Tag.query_by_id(tag_id, is_enable=True)
-    if not tag:
-        return generate_error_json(TAG_NOT_EXISTS)
+@blueprint.route('/tags/<string:tag>/articles/', methods=['GET'])
+def article_list_by_tag(tag):
     page = request.args.get('page', default=1, type=int)
-    pagination = tag.paginate_articles(
-        order='desc', page=page, per_page=Constant.ARTICLE_PAGE_SIZE
+    pagination = Article.paginate_by_tag(
+        tag,
+        order='desc',
+        page=page,
+        per_page=Constant.ARTICLE_PAGE_SIZE
     )
     articles = pagination.items
     result = {
         'articles': [article.to_json() for article in articles]
     }
     return generate_success_json(result)
-
-
-@blueprint.route('/articles/<int:article_id>/comment', methods=['POST'])
-@login_required
-def comment_article(article_id):
-    article = Article.query_by_id(article_id, is_enable=True)
-    if not article:
-        return generate_error_json(ARTICLE_NOT_EXISTS)
-    form = CommentArticleForm(meta={'csrf': False})
-    if not form.validate_on_submit():
-        return generate_error_json(ILLEGAL_FORM)
-
-    Comment.create(body_text=form.body.data,
-                   author_id=current_user.id,
-                   article_id=article.id)
-    return generate_success_json()
 
 
 @blueprint.route('/articles/<int:article_id>/comments', methods=['GET'])
@@ -160,4 +150,90 @@ def comment_list_by_article_id(article_id):
         'comments': [comment.to_json() for comment in comments]
     }
     return generate_success_json(result)
+
+
+@blueprint.route('/articles/publish', methods=['POST'])
+@login_required
+# @permission_required(UserPermission.PUBLISH_ARTICLE)
+def publish_article():
+    """发表文章"""
+    form = ArticleDetailForm(meta={'csrf': False})
+    if not form.validate_on_submit():
+        return generate_error_json(ILLEGAL_FORM)
+
+    Article.create(
+        title=form.title.data,
+        body_text=form.body.data,
+        category_id=form.category_id.data,
+        author_id=current_user.id,
+        tags=form.tags.data
+    )
+    return generate_success_json()
+
+
+@blueprint.route('/articles/<int:article_id>/edit', methods=['POST'])
+@login_required
+@permission_required(UserPermission.PUBLISH_ARTICLE)
+def edit_article(article_id):
+    """编辑文章"""
+    form = ArticleDetailForm(meta={'csrf': False})
+    if not form.validate_on_submit():
+        return generate_error_json(ILLEGAL_FORM)
+    article = Article.query_by_id(article_id, is_enable=True)
+    if not article:
+        return generate_error_json(ARTICLE_NOT_EXISTS)
+    article.update(
+        title=form.title.data,
+        body_text=form.body.data,
+        category_id=form.category_id.data,
+        tags=form.tags.data
+    )
+    return generate_success_json()
+
+
+@blueprint.route('/comments/<int:comment_id>/change-state', methods=['POST'])
+@login_required
+@permission_required(UserPermission.REVIEW_COMMENT)
+def review_comment(comment_id):
+    """管理评论"""
+    comment = Comment.query_by_id(comment_id)
+    if not comment:
+        return generate_error_json(COMMENT_NOT_EXISTS)
+    is_enable = not comment.is_enable
+    comment.update(is_enable=is_enable)
+    return generate_success_json()
+
+
+@blueprint.route('/articles/<int:article_id>/comment', methods=['POST'])
+@login_required
+@permission_required(UserPermission.COMMENT)
+def publish_comment(article_id):
+    """发表评论"""
+    article = Article.query_by_id(article_id, is_enable=True)
+    if not article:
+        return generate_error_json(ARTICLE_NOT_EXISTS)
+    form = CommentDetailForm(meta={'csrf': False})
+    if not form.validate_on_submit():
+        return generate_error_json(ILLEGAL_FORM)
+    Comment.create(body=form.body.data,
+                   author_id=current_user.id,
+                   article_id=article.id)
+    return generate_success_json()
+
+
+@blueprint.route('/comments/<int:comment_id>/modify', methods=['POST'])
+@login_required
+@permission_required(UserPermission.COMMENT)
+def modify_comment(comment_id):
+    """修改评论"""
+    comment = Comment.query_by_id(comment_id, is_enable=True)
+    if not comment:
+        return generate_error_json(COMMENT_NOT_EXISTS)
+    if comment.author_id != current_user.id:
+        return generate_error_json(USER_PERMISSION_DENIED)
+    form = CommentDetailForm(meta={'csrf': False})
+    if not form.validate_on_submit():
+        return generate_error_json(ILLEGAL_FORM)
+    comment.update(body=form.body.data)
+    return generate_success_json()
 

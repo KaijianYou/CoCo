@@ -1,3 +1,6 @@
+import sys
+import traceback
+
 from flask import Flask
 
 from blog.extensions import db, login_manager, migrate, mail
@@ -6,16 +9,21 @@ from blog.const import init_const
 
 
 def create_app(config_env):
-    app = Flask(__name__)
-    app.config.from_object(config[config_env])
-    config[config_env].init_app(app)
-    init_const(app.config['ENV'])
-    register_extensions(app)
-    register_blueprints(app)
-    register_error_handler(app)
-    register_shell_context(app)
-    register_commands(app)
-    return app
+    try:
+        app = Flask(__name__)
+        app.config.from_object(config[config_env])
+        config[config_env].init_app(app)
+        init_const(app.config['ENV'])
+        register_extensions(app)
+        register_blueprints(app)
+        register_error_handler(app)
+        register_shell_context(app)
+        register_commands(app)
+    except Exception:
+        traceback.print_exc()
+        sys.exit()
+    else:
+        return app
 
 
 def register_extensions(app):
@@ -34,10 +42,9 @@ def register_extensions(app):
 
 
 def register_blueprints(app):
-    from blog import auth, public, admin
+    from blog import public, auth
     app.register_blueprint(auth.views.blueprint, url_prefix='/api/auth')
     app.register_blueprint(public.views.blueprint, url_prefix='/api')
-    app.register_blueprint(admin.views.blueprint, url_prefix='/api/admin')
 
 
 def register_error_handler(app):

@@ -3,7 +3,7 @@ from .article import Article
 
 
 class Category(Model):
-    __tablename__ = 'categories'
+    __tablename__ = 'category'
 
     name = db.Column(db.String(20), index=True, unique=True, nullable=False)
     articles = db.relationship('Article', backref='category', lazy='dynamic')

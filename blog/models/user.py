@@ -8,6 +8,8 @@ from .mixin import db, Model
 class UserPermission:
     ADMIN = 0x1
     COMMENT = 0x2
+    PUBLISH_ARTICLE = 0x4
+    REVIEW_COMMENT = 0x8
 
 
 class UserRole:
@@ -21,13 +23,15 @@ role_permissions = {
     ),
     UserRole.ADMINISTRATOR: (
         UserPermission.ADMIN |
-        UserPermission.COMMENT
+        UserPermission.COMMENT |
+        UserPermission.PUBLISH_ARTICLE |
+        UserPermission.REVIEW_COMMENT
     )
 }
 
 
 class User(Model, UserMixin):
-    __tablename__ = 'users'
+    __tablename__ = 'users'  # 因为 PostgreSQL 内置了一张 "user" 表，所以为了区分，这里使用 "users" 表名
 
     nickname = db.Column(db.String(32), unique=True, nullable=False)
     email = db.Column(db.String(32), unique=True, nullable=False)
@@ -72,7 +76,7 @@ class User(Model, UserMixin):
         return self.is_enable and super().is_authenticated
 
     def can(self, permission):
-        role_permission = role_permissions.get(self.role_type, None)
+        role_permission = role_permissions.get(self.role, None)
         return role_permission is not None and (role_permission & permission) == permission
 
     @classmethod

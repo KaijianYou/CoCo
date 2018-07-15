@@ -17,7 +17,6 @@ flask-migrate = "*"
 coverage = "*"
 pytest = "*"
 pylint = "*"
-faker = "*"
 
 [requires]
 python_version = "3.6"

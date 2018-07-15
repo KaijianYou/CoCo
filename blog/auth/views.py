@@ -1,7 +1,7 @@
 from flask import Blueprint, current_app
 from flask_login import login_user, logout_user, login_required
 
-from blog.auth.forms import LoginForm, RegisterForm
+from .forms import LoginForm, RegisterForm
 from blog.errors import WRONG_EMAIL_OR_PASSWORD, ILLEGAL_FORM, EMAIL_ALREADY_REGISTERED, \
     NICKNAME_ALREADY_USED
 from blog.models.user import User, UserRole

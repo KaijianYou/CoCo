@@ -4,11 +4,11 @@ from .mixin import db, Model
 
 
 class Comment(Model):
-    __tablename__ = 'comments'
+    __tablename__ = 'comment'
 
-    body_text = db.Column(db.String(200), nullable=False)
+    body = db.Column(db.String(200), nullable=False)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'))
-    article_id = db.Column(db.Integer, db.ForeignKey('articles.id'))
+    article_id = db.Column(db.Integer, db.ForeignKey('article.id'))
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -19,7 +19,7 @@ class Comment(Model):
     def to_json(self):
         return {
             'id': self.id,
-            'body': self.body_text,
-            'authorName': self.author.nickname,
+            'body': self.body,
+            'author': self.author.nickname,
             'createDatetime': self.utc_created + timedelta(hours=8)
         }
