@@ -154,7 +154,7 @@ def comment_list_by_article_id(article_id):
 
 @blueprint.route('/articles/publish', methods=['POST'])
 @login_required
-# @permission_required(UserPermission.PUBLISH_ARTICLE)
+@permission_required(UserPermission.PUBLISH_ARTICLE)
 def publish_article():
     """发表文章"""
     form = ArticleDetailForm(meta={'csrf': False})
