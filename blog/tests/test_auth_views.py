@@ -89,7 +89,7 @@ class TestCase(unittest.TestCase):
         )
         json_data = response.get_json()
         self.assertEqual(json_data['status'], 'OK')
-        user = User.query_by_email(admin_email, is_enable=True)
+        user = User.get_by_email(admin_email, enabled=True)
         self.assertFalse(user is None)
         self.assertEqual(user.role, UserRole.ADMINISTRATOR)
 

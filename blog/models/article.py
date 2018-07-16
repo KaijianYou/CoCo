@@ -27,7 +27,7 @@ class Article(Model):
             'title': self.title,
             'bodyText': self.body_text,
             'viewCount': self.view_count,
-            'isEnable': self.is_enable,
+            'isEnable': self.enabled,
             'createDatetime': self.utc_created + timedelta(hours=8),
             'updateDatetime': self.utc_updated + timedelta(hours=8),
             'comments': [comment.to_json() for comment in self.comments],
@@ -36,33 +36,33 @@ class Article(Model):
             'author': self.author.nickname
         }
 
-    def paginate_comments(self, is_enable=None, order='asc', page=1, per_page=10):
+    def paginate_comments(self, enabled=None, order='asc', page=1, per_page=10):
         query = self.comments
-        if is_enable is not None:
-            query = query.filter_by(is_enable=is_enable)
+        if enabled is not None:
+            query = query.filter_by(enabled=enabled)
         order_param = Comment.id.asc() if order == 'asc' else Comment.id.desc()
         return query.order_by(order_param).paginate(page, per_page)
 
     @classmethod
-    def paginate(cls, is_enable=None, order='asc', page=1, per_page=10):
+    def paginate(cls, enabled=None, order='asc', page=1, per_page=10):
         query = cls.query
-        if is_enable is not None:
-            query = query.filter_by(is_enable=is_enable)
+        if enabled is not None:
+            query = query.filter_by(enabled=enabled)
         order_param = cls.id.asc() if order == 'asc' else cls.id.desc()
         return query.order_by(order_param).paginate(page, per_page)
 
     @classmethod
-    def paginate_by_tag(cls, tag, is_enable=None, order='asc', page=1, per_page=10):
+    def paginate_by_tag(cls, tag, enabled=None, order='asc', page=1, per_page=10):
         query = cls.query.filter(cls.tags.like(f'%{tag}%'))
-        if is_enable is not None:
-            query = query.filter_by(is_enable=is_enable)
+        if enabled is not None:
+            query = query.filter_by(enabled=enabled)
         order_param = cls.id.asc() if order == 'asc' else cls.id.desc()
         return query.order_by(order_param).paginate(page, per_page)
 
     @classmethod
-    def query_all_tags(cls, is_enable=None, order='asc'):
+    def list_tags(cls, enabled=None, order='asc'):
         query = cls.query
-        if is_enable is not None:
-            query = query.filter_by(is_enable=is_enable)
+        if enabled is not None:
+            query = query.filter_by(enabled=enabled)
         order_param = cls.id.asc() if order == 'asc' else cls.id.desc()
         return query.order_by(order_param).with_entities(cls.tags).all()

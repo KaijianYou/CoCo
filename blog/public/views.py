@@ -29,7 +29,7 @@ def search_articles_by_keyword():
 
 @blueprint.route('/categories/', methods=['GET'])
 def category_list():
-    categories = Category.query_all(is_enable=True)
+    categories = Category.list(enabled=True)
     result = {
         'categories': [category.to_json() for category in categories]
     }
@@ -38,7 +38,7 @@ def category_list():
 
 @blueprint.route('/tags/', methods=['GET'])
 def tag_list():
-    tags_list = Article.query_all_tags(is_enable=True)
+    tags_list = Article.list_tags(enabled=True)
     tags_set = set()
     for t in tags_list:
         tag_list = t[0].split(',') if t[0] else []
@@ -52,7 +52,7 @@ def tag_list():
 
 @blueprint.route('/archive', methods=['GET'])
 def archive():
-    articles = Article.query_all(is_enable=True, order='desc')
+    articles = Article.list(enabled=True, order='desc')
     archive_dict = defaultdict(list)
     for article in articles:
         article_create_datetime = article.utc_created + timedelta(hours=8)
@@ -75,7 +75,7 @@ def archive():
 
 @blueprint.route('/articles/<int:article_id>', methods=['GET'])
 def article_detail(article_id):
-    article = Article.query_by_id(article_id, is_enable=True)
+    article = Article.get_by_id(article_id, enabled=True)
     if not article:
         return generate_error_json(ARTICLE_NOT_EXISTS)
 
@@ -91,7 +91,7 @@ def article_detail(article_id):
 def article_list():
     page = request.args.get('page', default=1, type=int)
     pagination = Article.paginate(
-        is_enable=True,
+        enabled=True,
         order='desc',
         page=page,
         per_page=Constant.ARTICLE_PAGE_SIZE
@@ -106,7 +106,7 @@ def article_list():
 
 @blueprint.route('/categories/<int:category_id>/articles/', methods=['GET'])
 def article_list_by_category_id(category_id):
-    category = Category.query_by_id(category_id, is_enable=True)
+    category = Category.get_by_id(category_id, enabled=True)
     if not category:
         return generate_error_json(CATEGORY_NOT_EXISTS)
     page = request.args.get('page', default=1, type=int)
@@ -138,7 +138,7 @@ def article_list_by_tag(tag):
 
 @blueprint.route('/articles/<int:article_id>/comments', methods=['GET'])
 def comment_list_by_article_id(article_id):
-    article = Article.query_by_id(article_id, is_enable=True)
+    article = Article.get_by_id(article_id, enabled=True)
     if not article:
         return generate_error_json(ARTICLE_NOT_EXISTS)
     page = request.args.get('page', default=1, type=int)
@@ -179,7 +179,7 @@ def edit_article(article_id):
     form = ArticleDetailForm(meta={'csrf': False})
     if not form.validate_on_submit():
         return generate_error_json(ILLEGAL_FORM)
-    article = Article.query_by_id(article_id, is_enable=True)
+    article = Article.get_by_id(article_id, enabled=True)
     if not article:
         return generate_error_json(ARTICLE_NOT_EXISTS)
     article.update(
@@ -196,11 +196,11 @@ def edit_article(article_id):
 @permission_required(UserPermission.REVIEW_COMMENT)
 def review_comment(comment_id):
     """管理评论"""
-    comment = Comment.query_by_id(comment_id)
+    comment = Comment.get_by_id(comment_id)
     if not comment:
         return generate_error_json(COMMENT_NOT_EXISTS)
-    is_enable = not comment.is_enable
-    comment.update(is_enable=is_enable)
+    enabled = not comment.enabled
+    comment.update(enabled=enabled)
     return generate_success_json()
 
 
@@ -209,7 +209,7 @@ def review_comment(comment_id):
 @permission_required(UserPermission.COMMENT)
 def publish_comment(article_id):
     """发表评论"""
-    article = Article.query_by_id(article_id, is_enable=True)
+    article = Article.get_by_id(article_id, enabled=True)
     if not article:
         return generate_error_json(ARTICLE_NOT_EXISTS)
     form = CommentDetailForm(meta={'csrf': False})
@@ -226,7 +226,7 @@ def publish_comment(article_id):
 @permission_required(UserPermission.COMMENT)
 def modify_comment(comment_id):
     """修改评论"""
-    comment = Comment.query_by_id(comment_id, is_enable=True)
+    comment = Comment.get_by_id(comment_id, enabled=True)
     if not comment:
         return generate_error_json(COMMENT_NOT_EXISTS)
     if comment.author_id != current_user.id:

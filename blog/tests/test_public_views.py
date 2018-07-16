@@ -165,7 +165,7 @@ class TestCase(unittest.TestCase):
         json_data = response.get_json()
         self.assertEqual(json_data['status'], 'OK')
 
-        article = Article.query.filter_by(title='Flask框架初探', is_enable=True).first()
+        article = Article.query.filter_by(title='Flask框架初探', enabled=True).first()
         self.assertEqual(article.body_text, 'Flask框架是一个用Python实现的微框架。...')
         self.assertEqual(article.category_id, 1)
         self.assertEqual(article.tags, 'Python,Flask,Web')
@@ -194,7 +194,7 @@ class TestCase(unittest.TestCase):
         json_data = response.get_json()
         self.assertEqual(json_data['status'], 'OK')
 
-        article = Article.query_by_id(1, is_enable=True)
+        article = Article.get_by_id(1, enabled=True)
         self.assertEqual(article.title, '学习使用WebGL制作小游戏')
         self.assertEqual(article.body_text, '...')
         self.assertEqual(article.category_id, 2)
@@ -218,8 +218,8 @@ class TestCase(unittest.TestCase):
         )
         json_data = response.get_json()
         self.assertEqual(json_data['status'], 'OK')
-        comment = Comment.query_by_id(1)
-        self.assertEqual(comment.is_enable, False)
+        comment = Comment.get_by_id(1)
+        self.assertEqual(comment.enabled, False)
 
         response = self.client.post(
             url_for('public.review_comment', comment_id=1),
@@ -227,8 +227,8 @@ class TestCase(unittest.TestCase):
         )
         json_data = response.get_json()
         self.assertEqual(json_data['status'], 'OK')
-        comment = Comment.query_by_id(1)
-        self.assertEqual(comment.is_enable, True)
+        comment = Comment.get_by_id(1)
+        self.assertEqual(comment.enabled, True)
 
     def test_publish_comment(self):
         self.create_fake_data()
@@ -259,7 +259,7 @@ class TestCase(unittest.TestCase):
         self.assertEqual(json_data['status'], 'OK')
 
         comment = Comment.query\
-            .filter_by(article_id=1, is_enable=True)\
+            .filter_by(article_id=1, enabled=True)\
             .order_by(Comment.id.desc())\
             .first()
         self.assertEqual(comment.body, new_comment_body)
@@ -281,6 +281,6 @@ class TestCase(unittest.TestCase):
         )
         json_data = response.get_json()
         self.assertEqual(json_data['status'], 'OK')
-        comment = Comment.query_by_id(1, is_enable=True)
+        comment = Comment.get_by_id(1, enabled=True)
         self.assertEqual(comment.body, new_comment_body)
 

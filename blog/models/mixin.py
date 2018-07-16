@@ -19,12 +19,18 @@ class ModelMixin:
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     utc_created = db.Column(db.DateTime(False), default=datetime.utcnow)
     utc_updated = db.Column(db.DateTime(False), default=datetime.utcnow)
-    is_enable = db.Column(db.Boolean, default=True)
+    enabled = db.Column(db.Boolean, default=True)
 
     @classmethod
     def create(cls, *args, **kwargs):
-        instance = cls(*args, **kwargs)
-        return instance.save()
+        try:
+            instance = cls(*args, **kwargs)
+            instance.save()
+        except Exception as e:
+            db.session.rollback()
+            raise e
+        else:
+            return instance
 
     def update(self, **kwargs):
         for attr, value in kwargs.items():
@@ -41,17 +47,17 @@ class ModelMixin:
         return db.session.commit()
 
     @classmethod
-    def query_by_id(cls, id, is_enable=None):
+    def get_by_id(cls, id, enabled=None):
         query = cls.query
-        if is_enable is not None:
-            query = query.filter_by(is_enable=is_enable)
+        if enabled is not None:
+            query = query.filter_by(enabled=enabled)
         return query.filter_by(id=id).first()
 
     @classmethod
-    def query_all(cls, is_enable=None, order='asc'):
+    def list(cls, enabled=None, order='asc'):
         query = cls.query
-        if is_enable is not None:
-            query = query.filter_by(is_enable=is_enable)
+        if enabled is not None:
+            query = query.filter_by(enabled=enabled)
         order_param = cls.id.asc() if order == 'asc' else cls.id.desc()
         return query.order_by(order_param).all()
 

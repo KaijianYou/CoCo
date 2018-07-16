@@ -69,28 +69,28 @@ class User(Model, UserMixin):
 
     @property
     def is_active(self):
-        return self.is_enable
+        return self.enabled
 
     @property
     def is_authenticated(self):
-        return self.is_enable and super().is_authenticated
+        return self.enabled and super().is_authenticated
 
     def can(self, permission):
         role_permission = role_permissions.get(self.role, None)
         return role_permission is not None and (role_permission & permission) == permission
 
     @classmethod
-    def query_by_email(cls, email, is_enable=None):
+    def get_by_email(cls, email, enabled=None):
         query = cls.query
-        if is_enable is not None:
-            query = query.filter_by(is_enable=is_enable)
+        if enabled is not None:
+            query = query.filter_by(enabled=enabled)
         return query.filter_by(email=email).first()
 
     @classmethod
-    def query_by_email_or_nickname(cls, email, nickname, is_enable=None):
+    def get_by_email_or_nickname(cls, email, nickname, enabled=None):
         query = cls.query
-        if is_enable is not None:
-            query = query.filter_by(is_enable=is_enable)
+        if enabled is not None:
+            query = query.filter_by(enabled=enabled)
         return query.filter(or_(cls.email == email, cls.nickname == nickname)).first()
 
 

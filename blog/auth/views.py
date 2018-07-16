@@ -16,7 +16,7 @@ def login():
     form = LoginForm(meta={'csrf': False})
     if not form.validate_on_submit():
         return generate_error_json(ILLEGAL_FORM)
-    user = User.query_by_email(form.email.data, is_enable=True)
+    user = User.get_by_email(form.email.data, enabled=True)
     if user is not None and user.verify_password(form.password.data):
         login_user(user, remember=True)
         return generate_success_json()
@@ -29,7 +29,7 @@ def register():
     if not form.validate_on_submit():
         return generate_error_json(ILLEGAL_FORM)
     email, nickname = form.email.data, form.nickname.data
-    user = User.query_by_email_or_nickname(email, nickname, is_enable=True)
+    user = User.get_by_email_or_nickname(email, nickname, enabled=True)
     if user is not None:
         if user.nickname == nickname:
             return generate_error_json(NICKNAME_ALREADY_USED)
