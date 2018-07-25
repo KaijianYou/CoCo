@@ -3,7 +3,7 @@ import unittest
 from json import loads
 
 from blog.app import create_app, db
-from blog.utils import generate_success_json, generate_error_json
+from blog.utils.json_util import generate_success_json, generate_error_json
 from blog.errors import PERMISSION_FORBIDDEN
 
 

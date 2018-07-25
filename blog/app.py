@@ -47,7 +47,7 @@ def register_blueprints(app):
 
 
 def register_error_handler(app):
-    from blog.utils import generate_error_json
+    from blog.utils.json_util import generate_error_json
     from blog.errors import BAD_REQUEST, PERMISSION_FORBIDDEN, UNAUTHORIZED
 
     def bad_request(e):

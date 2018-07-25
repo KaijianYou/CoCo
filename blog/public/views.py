@@ -5,7 +5,8 @@ from flask import Blueprint, request, url_for
 from flask_login import login_required, current_user
 
 from .forms import CommentDetailForm, ArticleDetailForm
-from blog.utils import generate_success_json, generate_error_json, permission_required
+from blog.utils.json_util import generate_success_json, generate_error_json
+from blog.utils.utils import permission_required
 from blog.models.category import Category
 from blog.models.user import UserPermission
 from blog.models.article import Article

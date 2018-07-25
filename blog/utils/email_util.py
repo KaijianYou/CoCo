@@ -8,7 +8,7 @@ from email.mime.base import MIMEBase
 from email.encoders import encode_base64
 from email.utils import formatdate
 
-from blog.utils import async_task
+from blog.utils.utils import async_task
 
 
 class _Attachment:

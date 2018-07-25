@@ -4,8 +4,8 @@ from flask_login import login_user, logout_user, login_required, current_user
 from .forms import LoginForm, RegisterForm, ResetPasswordForm, RequestPasswordResetForm
 from blog import errors
 from blog.models.user import User, UserRole
-from blog.utils import generate_success_json, generate_error_json
-from blog.email_util import EmailUtil
+from blog.utils.json_util import generate_success_json, generate_error_json
+from blog.utils.email_util import EmailUtil
 
 
 blueprint = Blueprint('auth', __name__)
