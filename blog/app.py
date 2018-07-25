@@ -3,7 +3,7 @@ import traceback
 
 from flask import Flask
 
-from blog.extensions import db, login_manager, migrate, mail
+from blog.extensions import db, login_manager, migrate
 from blog.settings import config
 from blog.const import init_const
 
@@ -30,7 +30,6 @@ def register_extensions(app):
     db.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db)
-    mail.init_app(app)
 
     from .models.user import User, AnonymousUser
     login_manager.session_protection = 'basic'

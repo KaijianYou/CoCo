@@ -5,13 +5,13 @@ name = "pypi"
 
 [packages]
 flask = "*"
-flask-mail = "*"
 flask-login = "*"
 flask-sqlalchemy = "*"
 invoke = "*"
 flask-wtf = "*"
 "psycopg2" = "*"
 flask-migrate = "*"
+pyjwt = "*"
 
 [dev-packages]
 coverage = "*"

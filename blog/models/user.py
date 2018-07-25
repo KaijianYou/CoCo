@@ -1,3 +1,7 @@
+import time
+
+import jwt
+from flask import current_app
 from flask_login import UserMixin, AnonymousUserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_
@@ -34,7 +38,7 @@ class User(Model, UserMixin):
     __tablename__ = 'users'  # 因为 PostgreSQL 内置了一张 "user" 表，所以为了区分，这里使用 "users" 表名
 
     nickname = db.Column(db.String(32), unique=True, nullable=False)
-    email = db.Column(db.String(32), unique=True, nullable=False)
+    email = db.Column(db.String(64), unique=True, nullable=False)
     password_hash = db.Column(db.String(128), nullable=False)
     avatar_url = db.Column(db.String(512))
     bio = db.Column(db.String(200))
@@ -92,6 +96,24 @@ class User(Model, UserMixin):
         if enabled is not None:
             query = query.filter_by(enabled=enabled)
         return query.filter(or_(cls.email == email, cls.nickname == nickname)).first()
+
+    def get_password_reset_token(self, expire_in_seconds=30*60):
+        return jwt.encode(
+            {'reset_password': self.id, 'exp': time.time() + expire_in_seconds},
+            current_app.config['SECRET_KEY'], algorithm='HS256'
+        ).decode('utf-8')
+
+    @staticmethod
+    def verify_password_reset_token(token):
+        try:
+            user_id = jwt.decode(
+                token,
+                current_app.config['SECRET_KEY'],
+                algorithm='HS256'
+            )['reset_password']
+        except Exception:
+            return None
+        return User.get_by_id(user_id)
 
 
 class AnonymousUser(AnonymousUserMixin):

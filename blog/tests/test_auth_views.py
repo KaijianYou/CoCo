@@ -102,7 +102,10 @@ class TestCase(unittest.TestCase):
         json_data = response.get_json()
         self.assertEqual(json_data['status'], 'OK')
 
-        response = self.client.get(url_for('auth.logout'))
+        response = self.client.post(
+            url_for('auth.logout'),
+            data={}
+        )
         json_data = response.get_json()
         self.assertEqual(json_data['status'], 'OK')
 

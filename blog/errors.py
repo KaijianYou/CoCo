@@ -19,4 +19,8 @@ WRONG_EMAIL_OR_PASSWORD = BaseError('WRONG_EMAIL_OR_PASSWORD', '账号或密码�
 NICKNAME_ALREADY_USED = BaseError('NICKNAME_ALREADY_USED', '该昵称已被使用')
 EMAIL_ALREADY_REGISTERED = BaseError('EMAIL_ALREADY_REGISTERED', '该邮箱已被注册')
 USER_PERMISSION_DENIED = BaseError('USER_PERMISSION_DENIED', '不允许的操作')
+ALREADY_LOGIN = BaseError('ALREADY_LOGIN', '已经登录')
+EMAIL_NOT_REGISTERED = BaseError('EMAIL_NOT_REGISTERED', '该邮箱未注册')
+PASSWORD_RESET_TOKEN_INVALID = BaseError('PASSWORD_RESET_TOKEN_INVALID', '密码重置码无效')
+INTERNAL_ERROR = BaseError('INTERNAL_ERROR', '服务器内部错误')
 

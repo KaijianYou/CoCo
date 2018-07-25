@@ -11,7 +11,7 @@ from blog.models.user import UserPermission
 from blog.models.article import Article
 from blog.models.comment import Comment
 from blog.const import Constant
-from blog.errors import *
+from blog import errors
 
 
 blueprint = Blueprint('public', __name__)
@@ -19,10 +19,10 @@ blueprint = Blueprint('public', __name__)
 
 @blueprint.route('/articles/search', methods=['GET'])
 def search_articles_by_keyword():
-    """TODO: 未完成"""
+    """TODO: 根据关键词查找文章"""
     keyword = request.args.get('query', None)
     if not keyword:
-        return generate_error_json(QUERY_WORD_NOT_FOUND)
+        return generate_error_json(errors.QUERY_WORD_NOT_FOUND)
     result = {}
     return generate_success_json(result)
 
@@ -77,7 +77,7 @@ def archive():
 def article_detail(article_id):
     article = Article.get_by_id(article_id, enabled=True)
     if not article:
-        return generate_error_json(ARTICLE_NOT_EXISTS)
+        return generate_error_json(errors.ARTICLE_NOT_EXISTS)
 
     view_count = article.view_count + 1
     article.update(view_count=view_count)
@@ -108,7 +108,7 @@ def article_list():
 def article_list_by_category_id(category_id):
     category = Category.get_by_id(category_id, enabled=True)
     if not category:
-        return generate_error_json(CATEGORY_NOT_EXISTS)
+        return generate_error_json(errors.CATEGORY_NOT_EXISTS)
     page = request.args.get('page', default=1, type=int)
     pagination = category.paginate_articles(
         order='desc', page=page, per_page=Constant.ARTICLE_PAGE_SIZE
@@ -140,7 +140,7 @@ def article_list_by_tag(tag):
 def comment_list_by_article_id(article_id):
     article = Article.get_by_id(article_id, enabled=True)
     if not article:
-        return generate_error_json(ARTICLE_NOT_EXISTS)
+        return generate_error_json(errors.ARTICLE_NOT_EXISTS)
     page = request.args.get('page', default=1, type=int)
     pagination = article.paginate_comments(
         order='desc', page=page, per_page=Constant.COMMENT_PAGE_SIZE
@@ -159,7 +159,7 @@ def publish_article():
     """发表文章"""
     form = ArticleDetailForm(meta={'csrf': False})
     if not form.validate_on_submit():
-        return generate_error_json(ILLEGAL_FORM)
+        return generate_error_json(errors.ILLEGAL_FORM)
 
     Article.create(
         title=form.title.data,
@@ -178,10 +178,10 @@ def edit_article(article_id):
     """编辑文章"""
     form = ArticleDetailForm(meta={'csrf': False})
     if not form.validate_on_submit():
-        return generate_error_json(ILLEGAL_FORM)
+        return generate_error_json(errors.ILLEGAL_FORM)
     article = Article.get_by_id(article_id, enabled=True)
     if not article:
-        return generate_error_json(ARTICLE_NOT_EXISTS)
+        return generate_error_json(errors.ARTICLE_NOT_EXISTS)
     article.update(
         title=form.title.data,
         body_text=form.body.data,
@@ -198,7 +198,7 @@ def review_comment(comment_id):
     """管理评论"""
     comment = Comment.get_by_id(comment_id)
     if not comment:
-        return generate_error_json(COMMENT_NOT_EXISTS)
+        return generate_error_json(errors.COMMENT_NOT_EXISTS)
     enabled = not comment.enabled
     comment.update(enabled=enabled)
     return generate_success_json()
@@ -211,13 +211,15 @@ def publish_comment(article_id):
     """发表评论"""
     article = Article.get_by_id(article_id, enabled=True)
     if not article:
-        return generate_error_json(ARTICLE_NOT_EXISTS)
+        return generate_error_json(errors.ARTICLE_NOT_EXISTS)
     form = CommentDetailForm(meta={'csrf': False})
     if not form.validate_on_submit():
-        return generate_error_json(ILLEGAL_FORM)
-    Comment.create(body=form.body.data,
-                   author_id=current_user.id,
-                   article_id=article.id)
+        return generate_error_json(errors.ILLEGAL_FORM)
+    Comment.create(
+        body=form.body.data,
+        author_id=current_user.id,
+        article_id=article.id
+    )
     return generate_success_json()
 
 
@@ -228,12 +230,12 @@ def modify_comment(comment_id):
     """修改评论"""
     comment = Comment.get_by_id(comment_id, enabled=True)
     if not comment:
-        return generate_error_json(COMMENT_NOT_EXISTS)
+        return generate_error_json(errors.COMMENT_NOT_EXISTS)
     if comment.author_id != current_user.id:
-        return generate_error_json(USER_PERMISSION_DENIED)
+        return generate_error_json(errors.USER_PERMISSION_DENIED)
     form = CommentDetailForm(meta={'csrf': False})
     if not form.validate_on_submit():
-        return generate_error_json(ILLEGAL_FORM)
+        return generate_error_json(errors.ILLEGAL_FORM)
     comment.update(body=form.body.data)
     return generate_success_json()
 
