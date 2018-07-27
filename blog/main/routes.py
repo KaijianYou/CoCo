@@ -15,7 +15,7 @@ from blog.const import Constant
 from blog import errors
 
 
-blueprint = Blueprint('public', __name__)
+blueprint = Blueprint('main', __name__)
 
 
 @blueprint.route('/articles/search', methods=['GET'])
@@ -62,7 +62,7 @@ def archive():
         article_json = {
             'title': article.title,
             'url': url_for(
-                'public.article_detail',
+                'main.article_detail',
                 article_id=article.id,
                 _external=True
             )

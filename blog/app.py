@@ -41,9 +41,9 @@ def register_extensions(app):
 
 
 def register_blueprints(app):
-    from blog import public, auth
-    app.register_blueprint(auth.views.blueprint, url_prefix='/api/auth')
-    app.register_blueprint(public.views.blueprint, url_prefix='/api')
+    from blog import main, auth
+    app.register_blueprint(auth.routes.blueprint, url_prefix='/api/auth')
+    app.register_blueprint(main.routes.blueprint, url_prefix='/api')
 
 
 def register_error_handler(app):

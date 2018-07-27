@@ -13,8 +13,6 @@ def test():
     import pytest
     import coverage
 
-    set_env(env='test')
-
     # 统计代码测试覆盖率
     COV = coverage.coverage(branch=True, include=f'{BASE_DIR}/*')
     COV.start()
