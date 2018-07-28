@@ -3,10 +3,15 @@ import time
 
 from flask import g
 from flask_sqlalchemy import get_debug_queries
+from dotenv import load_dotenv
+
+
+BASE_DIR = os.path.abspath(os.path.dirname(__file__))
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 
 class Config:
-    SECRET_KEY = os.environ['COCO_SECRET_KEY']
+    SECRET_KEY = os.environ['SECRET_KEY']
 
     # 启用数据库查询性能记录功能
     SQLALCHEMY_RECORD_QUERIES = True
@@ -18,7 +23,7 @@ class Config:
     ARTICLES_PER_PAGE = 10
     COMMENTS_PER_PAGE = 10
 
-    ADMIN_EMAIL = os.environ['COCO_ADMIN_EMAIL']
+    ADMIN_EMAIL = os.environ['ADMIN_EMAIL']
 
     def init_app(self, app):
         @app.before_request
@@ -41,7 +46,7 @@ class DevConfig(Config):
     DEBUG = True
 
     # 数据库配置
-    SQLALCHEMY_DATABASE_URI = os.environ['COCO_DEV_DATABASE_URI']
+    SQLALCHEMY_DATABASE_URI = os.environ['DEV_DATABASE_URI']
 
     # 在 stderr 输出生成的 SQL 语句
     SQLALCHEMY_ECHO = True
@@ -74,7 +79,7 @@ class TestConfig(Config):
     WTF_CSRF_ENABLED = False
 
     # 数据库配置
-    SQLALCHEMY_DATABASE_URI = os.environ['COCO_TEST_DATABASE_URI']
+    SQLALCHEMY_DATABASE_URI = os.environ['TEST_DATABASE_URI']
 
 
 class ProdConfig(Config):
@@ -83,7 +88,7 @@ class ProdConfig(Config):
     DEBUG = False
 
     # 数据库配置
-    SQLALCHEMY_DATABASE_URI = os.environ['COCO_DATABASE_URI']
+    SQLALCHEMY_DATABASE_URI = os.environ['DATABASE_URI']
 
     def init_app(self, app):
         super().init_app(app)

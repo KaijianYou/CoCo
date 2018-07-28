@@ -1,6 +1,3 @@
-import sys
-import traceback
-
 from flask import Flask
 
 from blog.extensions import db, login_manager, migrate
@@ -9,21 +6,16 @@ from blog.const import init_const
 
 
 def create_app(config_env):
-    try:
-        app = Flask(__name__)
-        app.config.from_object(config[config_env])
-        config[config_env].init_app(app)
-        init_const(app.config['ENV'])
-        register_extensions(app)
-        register_blueprints(app)
-        register_error_handler(app)
-        register_shell_context(app)
-        register_commands(app)
-    except Exception:
-        traceback.print_exc()
-        sys.exit()
-    else:
-        return app
+    app = Flask(__name__)
+    app.config.from_object(config[config_env])
+    config[config_env].init_app(app)
+    init_const(app.config['ENV'])
+    register_extensions(app)
+    register_blueprints(app)
+    register_error_handler(app)
+    register_shell_context(app)
+    register_commands(app)
+    return app
 
 
 def register_extensions(app):
