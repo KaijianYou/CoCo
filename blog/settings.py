@@ -5,7 +5,6 @@ from flask import g
 from flask_sqlalchemy import get_debug_queries
 from dotenv import load_dotenv
 
-
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
@@ -18,6 +17,9 @@ class Config:
     # 查询时间超过 0.1s 的语句将被记录
     SLOW_DB_QUERY_TIME = 0.1
     SQLALCHEMY_TRACK_MODIFICATIONS = True
+
+    # Elasticsearch 配置
+    ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL', None)
 
     # 分页设置
     ARTICLES_PER_PAGE = 10

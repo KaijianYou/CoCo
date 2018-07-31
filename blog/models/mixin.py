@@ -3,6 +3,7 @@ from datetime import datetime
 from sqlalchemy.orm.interfaces import MapperExtension
 
 from blog.extensions import db
+from blog.search import query_index, add_to_index, remove_from_index
 
 
 class ModelUpdateExtension(MapperExtension):
@@ -54,12 +55,48 @@ class ModelMixin:
         return query.filter_by(id=id).first()
 
     @classmethod
-    def list(cls, enabled=None, order='asc'):
+    def list_all(cls, enabled=None, order='asc'):
         query = cls.query
         if enabled is not None:
             query = query.filter_by(enabled=enabled)
         order_param = cls.id.asc() if order == 'asc' else cls.id.desc()
         return query.order_by(order_param).all()
+
+
+class SearchableMixin:
+    @classmethod
+    def search(cls, expression, page, per_page):
+        ids, total = query_index(cls.__tablename__, expression, page, per_page)
+        if total == 0:
+            return [], 0
+        when = []
+        for i in range(len(ids)):
+            when.append((ids[i], i))
+        return cls.query.filter(cls.id.in_(ids)).filter_by(enabled=True)\
+            .order_by(db.case(when, value=cls.id)).all(), total
+
+    @classmethod
+    def before_commit(cls, session):
+        session._changes = {
+            'add': [obj for obj in session.new if isinstance(obj, cls)],
+            'update': [obj for obj in session.dirty if isinstance(obj, cls)],
+            'delete': [obj for obj in session.deleted if isinstance(obj, cls)]
+        }
+
+    @classmethod
+    def after_commit(cls, session):
+        for obj in session._changes['add']:
+            add_to_index(cls.__tablename__, obj)
+        for obj in session._changes['update']:
+            add_to_index(cls.__tablename__, obj)
+        for obj in session._changes['delete']:
+            remove_from_index(cls.__tablename__, obj)
+        session._changes = None
+
+    @classmethod
+    def reindex(cls):
+        for obj in cls.query:
+            add_to_index(cls.__tablename__, obj)
 
 
 class Model(ModelMixin, db.Model):

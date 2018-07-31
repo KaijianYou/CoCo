@@ -1,4 +1,5 @@
 from flask import Flask
+from elasticsearch import Elasticsearch
 
 from blog.extensions import db, login_manager, migrate
 from blog.settings import config
@@ -22,6 +23,8 @@ def register_extensions(app):
     db.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db)
+    elasticsearch_url = app.config['ELASTICSEARCH_URL']
+    app.elasticsearch = Elasticsearch([elasticsearch_url]) if elasticsearch_url else None
 
     from .models.user import User, AnonymousUser
     login_manager.session_protection = 'basic'

@@ -14,7 +14,7 @@ class Comment(Model):
         super().__init__(*args, **kwargs)
 
     def __repr__(self):
-        return f'<Comment({self.name!r})>'
+        return f'<Comment({self.body!r})>'
 
     def to_json(self):
         return {

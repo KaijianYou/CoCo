@@ -12,6 +12,7 @@ flask-wtf = "*"
 flask-migrate = "*"
 pyjwt = "*"
 python-dotenv = "*"
+elasticsearch = "*"
 
 [dev-packages]
 coverage = "*"

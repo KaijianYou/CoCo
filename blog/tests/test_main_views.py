@@ -17,9 +17,11 @@ class TestCase(unittest.TestCase):
         self.app_context.push()
         db.create_all()
         self.client = self.app.test_client(use_cookies=True)
+        self.create_fake_data()
 
     def tearDown(self):
         db.session.remove()
+        self.app.elasticsearch.indices.delete('article')
         db.drop_all()
         self.app_context.pop()
 
@@ -35,7 +37,7 @@ class TestCase(unittest.TestCase):
         category2 = Category.create(name='计算机')
         Article.create(
             title='WebGL制作游戏',
-            body_text='',
+            body_text='WebGL 游戏 难',
             tags='好玩,程序员',
             author_id=user1.id,
             category_id=category2.id,
@@ -43,7 +45,7 @@ class TestCase(unittest.TestCase):
         )
         Article.create(
             title='找工作',
-            body_text='',
+            body_text='工作，公司，面试，笔试，房子',
             tags='程序员,技术,招聘',
             author_id=user2.id,
             category_id=category2.id,
@@ -51,7 +53,7 @@ class TestCase(unittest.TestCase):
         )
         Article.create(
             title='网速慢',
-            body_text='',
+            body_text='宽带，联通、电信，屏蔽，路由器 房子',
             tags='网络,技术,交易',
             author_id=user1.id,
             category_id=category1.id,
@@ -62,18 +64,21 @@ class TestCase(unittest.TestCase):
         Comment.create(body='可以学习three.js', author_id=2, article_id=1)
         Comment.create(body='给我一份简历', author_id=1, article_id=2)
 
-    def test_search_articles_by_keyword(self):
-        url = url_for('main.search_articles_by_keyword')
+    def test_search_articles(self):
+        url = url_for('main.search_articles')
         response = self.client.get(url)
         json_data = response.get_json()
         self.assertEqual(json_data['errorCode'], 'QUERY_WORD_NOT_FOUND')
-        response = self.client.get(f'{url}?query=python')
+        keyword = '房子'
+        response = self.client.get(f'{url}?query={keyword}')
         json_data = response.get_json()
         self.assertEqual(json_data['status'], 'OK')
-        self.assertEqual(json_data['data'], {})
+        result = json_data['data']
+        self.assertEqual(result['articleCount'], 2)
+        article_ids = [article['id'] for article in result['articles']]
+        self.assertEqual(article_ids, [2, 3])
 
     def test_category_list(self):
-        self.create_fake_data()
         response = self.client.get(url_for('main.category_list'))
         json_data = response.get_json()
         categories = json_data['data']['categories']
@@ -82,14 +87,12 @@ class TestCase(unittest.TestCase):
         self.assertEqual(categories[1]['name'], '计算机')
 
     def test_tag_list(self):
-        self.create_fake_data()
         response = self.client.get(url_for('main.tag_list'))
         json_data = response.get_json()
         tags = json_data['data']['tags']
         self.assertEqual(set(tags), {'好玩', '程序员', '技术', '招聘', '网络', '交易'})
 
     def test_archive(self):
-        self.create_fake_data()
         response = self.client.get(url_for('main.archive'))
         json_data = response.get_json()
         self.assertEqual(json_data['data']['archive']['2018年1月'][0]['title'], 'WebGL制作游戏')
@@ -97,7 +100,6 @@ class TestCase(unittest.TestCase):
         self.assertEqual(json_data['data']['archive']['2017年5月'][0]['title'], '网速慢')
 
     def test_article_detail(self):
-        self.create_fake_data()
         response = self.client.get(url_for('main.article_detail', article_id=1))
         json_data = response.get_json()
         result = json_data['data']['article']
@@ -107,15 +109,13 @@ class TestCase(unittest.TestCase):
         self.assertEqual(result['tags'], ['好玩', '程序员'])
         self.assertEqual(result['category'], '计算机')
         self.assertEqual(result['author'], 'panda')
-#
+
     def test_article_list(self):
-        self.create_fake_data()
         response = self.client.get(url_for('main.article_list'))
         json_data = response.get_json()
         self.assertEqual(len(json_data['data']['articles']), 3)
 
     def test_article_list_by_category_id(self):
-        self.create_fake_data()
         response = self.client.get(url_for('main.article_list_by_category_id', category_id=2))
         json_data = response.get_json()
         articles = json_data['data']['articles']
@@ -124,7 +124,6 @@ class TestCase(unittest.TestCase):
         self.assertEqual(articles[1]['title'], 'WebGL制作游戏')
 
     def test_article_list_by_tag(self):
-        self.create_fake_data()
         response = self.client.get(url_for('main.article_list_by_tag', tag='技术'))
         json_data = response.get_json()
         articles = json_data['data']['articles']
@@ -133,7 +132,6 @@ class TestCase(unittest.TestCase):
         self.assertEqual(articles[1]['title'], '找工作')
 
     def test_comment_list_by_article_id(self):
-        self.create_fake_data()
         response = self.client.get(url_for('main.comment_list_by_article_id', article_id=2))
         json_data = response.get_json()
         comments = json_data['data']['comments']
@@ -142,7 +140,6 @@ class TestCase(unittest.TestCase):
         self.assertEqual(comments[1]['body'], '多面几家试试')
 
     def test_publish_article(self):
-        self.create_fake_data()
         response = self.client.post(
             url_for('auth.login'),
             data={
@@ -171,7 +168,6 @@ class TestCase(unittest.TestCase):
         self.assertEqual(article.tags, 'Python,Flask,Web')
 
     def test_edit_article(self):
-        self.create_fake_data()
         response = self.client.post(
             url_for('auth.login'),
             data={
@@ -201,7 +197,6 @@ class TestCase(unittest.TestCase):
         self.assertEqual(article.tags, '游戏,程序员,JavaScript')
 
     def test_review_comment(self):
-        self.create_fake_data()
         response = self.client.post(
             url_for('auth.login'),
             data={
@@ -231,8 +226,6 @@ class TestCase(unittest.TestCase):
         self.assertEqual(comment.enabled, True)
 
     def test_publish_comment(self):
-        self.create_fake_data()
-
         url = url_for('auth.login')
         response = self.client.post(url, data={'email': 'panda@gmail.com', 'password': '123456'})
         json_data = response.get_json()
@@ -265,8 +258,6 @@ class TestCase(unittest.TestCase):
         self.assertEqual(comment.body, new_comment_body)
 
     def test_modify_comment(self):
-        self.create_fake_data()
-
         url = url_for('auth.login')
         response = self.client.post(url, data={'email': 'panda@gmail.com', 'password': '123456'})
         json_data = response.get_json()
@@ -283,4 +274,3 @@ class TestCase(unittest.TestCase):
         self.assertEqual(json_data['status'], 'OK')
         comment = Comment.get_by_id(1, enabled=True)
         self.assertEqual(comment.body, new_comment_body)
-

@@ -19,18 +19,24 @@ blueprint = Blueprint('main', __name__)
 
 
 @blueprint.route('/articles/search', methods=['GET'])
-def search_articles_by_keyword():
+def search_articles():
     """TODO: 根据关键词查找文章"""
     keyword = request.args.get('query', None)
     if not keyword:
         return generate_error_json(errors.QUERY_WORD_NOT_FOUND)
-    result = {}
+    page = request.args.get('page', 1, type=int)
+    articles, total = Article.search(keyword, page, Constant.ARTICLE_PAGE_SIZE)
+    articles_json = [article.to_json() for article in articles]
+    result = {
+        'articles': articles_json,
+        'articleCount': total
+    }
     return generate_success_json(result)
 
 
 @blueprint.route('/categories/', methods=['GET'])
 def category_list():
-    categories = Category.list(enabled=True)
+    categories = Category.list_all(enabled=True)
     result = {
         'categories': [category.to_json() for category in categories]
     }
@@ -53,7 +59,7 @@ def tag_list():
 
 @blueprint.route('/archive', methods=['GET'])
 def archive():
-    articles = Article.list(enabled=True, order='desc')
+    articles = Article.list_all(enabled=True, order='desc')
     archive_dict = defaultdict(list)
     for article in articles:
         article_create_datetime = article.utc_created + timedelta(hours=8)
@@ -239,4 +245,3 @@ def modify_comment(comment_id):
         return generate_error_json(errors.ILLEGAL_FORM)
     comment.update(body=form.body.data)
     return generate_success_json()
-

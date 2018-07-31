@@ -1,11 +1,12 @@
 from datetime import timedelta
 
-from .mixin import db, Model
+from .mixin import db, Model, SearchableMixin
 from .comment import Comment
 
 
-class Article(Model):
+class Article(Model, SearchableMixin):
     __tablename__ = 'article'
+    __searchable__ = ['body_text']
 
     title = db.Column(db.String(64), nullable=False)
     body_text = db.Column(db.Text, nullable=False)
@@ -27,7 +28,7 @@ class Article(Model):
             'title': self.title,
             'bodyText': self.body_text,
             'viewCount': self.view_count,
-            'isEnable': self.enabled,
+            'isEnabled': self.enabled,
             'createDatetime': self.utc_created + timedelta(hours=8),
             'updateDatetime': self.utc_updated + timedelta(hours=8),
             'comments': [comment.to_json() for comment in self.comments],
@@ -66,3 +67,7 @@ class Article(Model):
             query = query.filter_by(enabled=enabled)
         order_param = cls.id.asc() if order == 'asc' else cls.id.desc()
         return query.order_by(order_param).with_entities(cls.tags).all()
+
+
+db.event.listen(db.session, 'before_commit', Article.before_commit)
+db.event.listen(db.session, 'after_commit', Article.after_commit)
