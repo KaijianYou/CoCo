@@ -6,7 +6,7 @@ from .comment import Comment
 
 class Article(Model, SearchableMixin):
     __tablename__ = 'article'
-    __searchable__ = ['body_text']
+    __searchable__ = ['body_text', 'tags', 'title']
 
     title = db.Column(db.String(64), nullable=False)
     body_text = db.Column(db.Text, nullable=False)

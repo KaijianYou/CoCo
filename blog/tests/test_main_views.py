@@ -69,14 +69,33 @@ class TestCase(unittest.TestCase):
         response = self.client.get(url)
         json_data = response.get_json()
         self.assertEqual(json_data['errorCode'], 'QUERY_WORD_NOT_FOUND')
+
+        import time
+        time.sleep(1)
+
         keyword = '房子'
         response = self.client.get(f'{url}?query={keyword}')
         json_data = response.get_json()
-        self.assertEqual(json_data['status'], 'OK')
         result = json_data['data']
         self.assertEqual(result['articleCount'], 2)
         article_ids = [article['id'] for article in result['articles']]
         self.assertEqual(article_ids, [2, 3])
+
+        keyword = '网速'
+        response = self.client.get(f'{url}?query={keyword}')
+        json_data = response.get_json()
+        result = json_data['data']
+        self.assertEqual(result['articleCount'], 1)
+        article_ids = [article['id'] for article in result['articles']]
+        self.assertEqual(article_ids, [3])
+
+        keyword = '程序员'
+        response = self.client.get(f'{url}?query={keyword}')
+        json_data = response.get_json()
+        result = json_data['data']
+        self.assertEqual(result['articleCount'], 2)
+        article_ids = [article['id'] for article in result['articles']]
+        self.assertEqual(article_ids, [2, 1])
 
     def test_category_list(self):
         response = self.client.get(url_for('main.category_list'))

@@ -1,4 +1,5 @@
 from flask import current_app
+from elasticsearch_dsl import Search
 
 
 def add_to_index(index, model):
@@ -19,18 +20,8 @@ def remove_from_index(index, model):
 def query_index(index, query, page, per_page):
     if not current_app.elasticsearch:
         return [], 0
-    search = current_app.elasticsearch.search(
-        index=index,
-        doc_type=index,
-        body={
-            'query': {
-                'multi_match': {
-                    'query': query
-                }
-            },
-            'from': (page - 1) * per_page,
-            'size': per_page
-        }
-    )
-    ids = [int(hit['_id']) for hit in search['hits']['hits']]
-    return ids, search['hits']['total']
+    s = Search(using=current_app.elasticsearch, index=index)\
+        .query('multi_match', query=query, fields=['*'])\
+        .execute()
+    ids = [int(hit['_id']) for hit in s['hits']['hits']]
+    return ids, s['hits']['total']
