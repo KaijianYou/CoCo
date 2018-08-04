@@ -1,4 +1,5 @@
 import time
+from datetime import datetime
 
 import jwt
 from flask import current_app
@@ -7,6 +8,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_
 
 from .mixin import db, Model
+from .message import Message
 
 
 class UserPermission:
@@ -14,6 +16,7 @@ class UserPermission:
     COMMENT = 0x2
     PUBLISH_ARTICLE = 0x4
     REVIEW_COMMENT = 0x8
+    MESSAGE = 0x10
 
 
 class UserRole:
@@ -23,13 +26,15 @@ class UserRole:
 
 role_permissions = {
     UserRole.GENERAL: (
-        UserPermission.COMMENT
+        UserPermission.COMMENT,
+        UserPermission.MESSAGE
     ),
     UserRole.ADMINISTRATOR: (
         UserPermission.ADMIN |
         UserPermission.COMMENT |
         UserPermission.PUBLISH_ARTICLE |
-        UserPermission.REVIEW_COMMENT
+        UserPermission.REVIEW_COMMENT |
+        UserPermission.MESSAGE
     )
 }
 
@@ -43,8 +48,16 @@ class User(Model, UserMixin):
     avatar_url = db.Column(db.String(512))
     bio = db.Column(db.String(200))
     role = db.Column(db.Integer, default=UserRole.GENERAL)
+
     articles = db.relationship('Article', backref='author', lazy='dynamic')
     comments = db.relationship('Comment', backref='author', lazy='dynamic')
+    message_sent = db.relationship(
+        'Message', foreign_keys='Message.sender_id', backref='sender', lazy='dynamic'
+    )
+    message_received = db.relationship(
+        'Message', foreign_keys='Message.recipient_id', backref='recipient', lazy='dynamic'
+    )
+    last_message_read_time = db.Column(db.DateTime)
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -115,8 +128,13 @@ class User(Model, UserMixin):
             return None
         return User.get_by_id(user_id)
 
+    def new_messages(self):
+        last_message_read_time = self.last_message_read_time or datetime(1900, 1, 1)
+        return Message.query.filter_by(recipient=self)\
+            .filter(Message.utc_created > last_message_read_time)\
+            .count()
+
 
 class AnonymousUser(AnonymousUserMixin):
     def can(self, permissions):
         return False
-

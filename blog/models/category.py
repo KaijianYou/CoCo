@@ -6,6 +6,7 @@ class Category(Model):
     __tablename__ = 'category'
 
     name = db.Column(db.String(20), index=True, unique=True, nullable=False)
+
     articles = db.relationship('Article', backref='category', lazy='dynamic')
 
     def __init__(self, *args, **kwargs):

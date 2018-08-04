@@ -8,6 +8,7 @@ from blog.models.article import Article
 from blog.models.user import User, UserRole
 from blog.models.category import Category
 from blog.models.comment import Comment
+from blog.models.message import Message
 
 
 class TestCase(unittest.TestCase):
@@ -63,6 +64,9 @@ class TestCase(unittest.TestCase):
         Comment.create(body='我家的也很慢', author_id=2, article_id=3)
         Comment.create(body='可以学习three.js', author_id=2, article_id=1)
         Comment.create(body='给我一份简历', author_id=1, article_id=2)
+
+        Message.create(sender=user1, recipient=user2, body='您好，能提供这份教程的中文版吗？')
+        Message.create(sender=user2, recipient=user1, body='这篇文章有很多错误：一是...；二是；最后是……')
 
     def test_search_articles(self):
         url = url_for('main.search_articles')
@@ -293,3 +297,39 @@ class TestCase(unittest.TestCase):
         self.assertEqual(json_data['status'], 'OK')
         comment = Comment.get_by_id(1, enabled=True)
         self.assertEqual(comment.body, new_comment_body)
+
+    def test_message_list(self):
+        url = url_for('auth.login')
+        response = self.client.post(url, data={'email': 'panda@gmail.com', 'password': '123456'})
+        json_data = response.get_json()
+        self.assertEqual(json_data['status'], 'OK')
+
+        url = url_for('main.message_list', filter_type='sent')
+        response = self.client.get(url)
+        json_data = response.get_json()
+        message_ids = [message['id'] for message in json_data['data']['messages']]
+        self.assertEqual([1], message_ids)
+
+        url = url_for('main.message_list', filter_type='received')
+        response = self.client.get(url)
+        json_data = response.get_json()
+        message_ids = [message['id'] for message in json_data['data']['messages']]
+        self.assertEqual([2], message_ids)
+
+    def test_send_message(self):
+        url = url_for('auth.login')
+        response = self.client.post(url, data={'email': 'panda@gmail.com', 'password': '123456'})
+        json_data = response.get_json()
+        self.assertEqual(json_data['status'], 'OK')
+
+        url = url_for('main.send_message', recipient_id=2)
+        response = self.client.post(url, 
+            data={
+                'body': '迪迦奥特曼'
+            }
+        )
+        json_data = response.get_json()
+        self.assertEqual(json_data['status'], 'OK')
+        message = Message.query.filter_by(enabled=True, sender_id=1).order_by(Message.id.desc()).first()
+        self.assertTrue(message is not None)
+        self.assertEqual(message.recipient_id, 2)

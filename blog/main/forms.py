@@ -13,3 +13,6 @@ class ArticleDetailForm(FlaskForm):
 class CommentDetailForm(FlaskForm):
     body = StringField(validators=[InputRequired(), Length(min=1, max=200)])
 
+
+class MessageForm(FlaskForm):
+    body = StringField(validators=[InputRequired(), Length(min=1, max=200)])

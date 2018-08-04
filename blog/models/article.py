@@ -14,6 +14,7 @@ class Article(Model, SearchableMixin):
     tags = db.Column(db.String(120), nullable=False)
     category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
     author_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
+
     comments = db.relationship('Comment', backref='article', lazy='dynamic')
 
     def __init__(self, *args, **kwargs):

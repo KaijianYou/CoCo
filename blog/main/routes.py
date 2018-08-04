@@ -1,18 +1,19 @@
 from collections import defaultdict
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from flask import Blueprint, request, url_for
 from flask_login import login_required, current_user
 
-from .forms import CommentDetailForm, ArticleDetailForm
 from blog.utils.json_util import generate_success_json, generate_error_json
 from blog.utils.utils import permission_required
 from blog.models.category import Category
-from blog.models.user import UserPermission
+from blog.models.user import User, UserPermission
 from blog.models.article import Article
 from blog.models.comment import Comment
+from blog.models.message import Message
 from blog.const import Constant
 from blog import errors
+from .forms import CommentDetailForm, ArticleDetailForm, MessageForm
 
 
 blueprint = Blueprint('main', __name__)
@@ -245,3 +246,38 @@ def modify_comment(comment_id):
         return generate_error_json(errors.ILLEGAL_FORM)
     comment.update(body=form.body.data)
     return generate_success_json()
+
+
+@blueprint.route('/send-message/<string:recipient_id>', methods=['POST'])
+@login_required
+@permission_required(UserPermission.MESSAGE)
+def send_message(recipient_id):
+    form = MessageForm(meta={'csrf': False})
+    if not form.validate_on_submit():
+        return generate_error_json(errors.ILLEGAL_FORM)
+    if current_user.id == recipient_id:
+        return generate_error_json(errors.INTERNAL_ERROR)
+    user = User.get_by_id(recipient_id, enabled=True)
+    if not user:
+        return generate_error_json(errors.USER_NOT_EXISTS)
+    Message.create(sender=current_user, recipient=user, body=form.body.data)
+    return generate_success_json()
+
+
+@blueprint.route('/messages/<string:filter_type>')
+@login_required
+def message_list(filter_type):
+    page = request.args.get('page', 1, type=int)
+    if filter_type == 'received':
+        current_user.update(last_message_read_time=datetime.utcnow())
+        pagination = current_user.message_received.order_by(Message.id.desc())\
+            .paginate(page, Constant.MESSAGE_PAGE_SIZE)
+    elif filter_type == 'sent':
+        pagination = current_user.message_sent.order_by(Message.id.desc())\
+            .paginate(page, Constant.MESSAGE_PAGE_SIZE)
+    else:
+        return generate_error_json(errors.FILTER_TYPE_ERROR)
+    result = {
+        'messages': [message.to_json() for message in pagination.items]
+    }
+    return generate_success_json(result)
