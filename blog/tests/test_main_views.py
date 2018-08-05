@@ -36,7 +36,7 @@ class TestCase(unittest.TestCase):
         user2 = User.create(nickname='lori', email='lori@gmail.com', password='000000')
         category1 = Category.create(name='杂谈')
         category2 = Category.create(name='计算机')
-        Article.create(
+        article1 = Article.create(
             title='WebGL制作游戏',
             body_text='WebGL 游戏 难',
             tags='好玩,程序员',
@@ -44,7 +44,9 @@ class TestCase(unittest.TestCase):
             category_id=category2.id,
             utc_created=datetime(2018, 1, 23)
         )
-        Article.create(
+        article1.update(slug='01234567')
+        article2 = Article.create(
+            slug='12345678',
             title='找工作',
             body_text='工作，公司，面试，笔试，房子',
             tags='程序员,技术,招聘',
@@ -52,7 +54,9 @@ class TestCase(unittest.TestCase):
             category_id=category2.id,
             utc_created=datetime(2018, 8, 1)
         )
-        Article.create(
+        article2.update(slug='12345678')
+        article3 = Article.create(
+            slug='23456789',
             title='网速慢',
             body_text='宽带，联通、电信，屏蔽，路由器 房子',
             tags='网络,技术,交易',
@@ -60,6 +64,7 @@ class TestCase(unittest.TestCase):
             category_id=category1.id,
             utc_created=datetime(2017, 5, 3)
         )
+        article3.update(slug='23456789')
         Comment.create(body='多面几家试试', author_id=1, article_id=2)
         Comment.create(body='我家的也很慢', author_id=2, article_id=3)
         Comment.create(body='可以学习three.js', author_id=2, article_id=1)
@@ -82,24 +87,24 @@ class TestCase(unittest.TestCase):
         json_data = response.get_json()
         result = json_data['data']
         self.assertEqual(result['articleCount'], 2)
-        article_ids = [article['id'] for article in result['articles']]
-        self.assertEqual(article_ids, [2, 3])
+        article_slugs = [article['slug'] for article in result['articles']]
+        self.assertEqual(article_slugs, ['12345678', '23456789'])
 
         keyword = '网速'
         response = self.client.get(f'{url}?query={keyword}')
         json_data = response.get_json()
         result = json_data['data']
         self.assertEqual(result['articleCount'], 1)
-        article_ids = [article['id'] for article in result['articles']]
-        self.assertEqual(article_ids, [3])
+        article_slugs = [article['slug'] for article in result['articles']]
+        self.assertEqual(article_slugs, ['23456789'])
 
         keyword = '程序员'
         response = self.client.get(f'{url}?query={keyword}')
         json_data = response.get_json()
         result = json_data['data']
         self.assertEqual(result['articleCount'], 2)
-        article_ids = [article['id'] for article in result['articles']]
-        self.assertEqual(article_ids, [2, 1])
+        article_slugs = [article['slug'] for article in result['articles']]
+        self.assertEqual(article_slugs, ['12345678', '01234567'])
 
     def test_category_list(self):
         response = self.client.get(url_for('main.category_list'))
@@ -123,10 +128,10 @@ class TestCase(unittest.TestCase):
         self.assertEqual(json_data['data']['archive']['2017年5月'][0]['title'], '网速慢')
 
     def test_article_detail(self):
-        response = self.client.get(url_for('main.article_detail', article_id=1))
+        response = self.client.get(url_for('main.article_detail', article_slug='01234567'))
         json_data = response.get_json()
         result = json_data['data']['article']
-        self.assertEqual(result['id'], 1)
+        self.assertEqual(result['slug'], '01234567')
         self.assertEqual(result['viewCount'], 1)
         self.assertEqual(result['title'], 'WebGL制作游戏')
         self.assertEqual(result['tags'], ['好玩', '程序员'])
@@ -154,8 +159,8 @@ class TestCase(unittest.TestCase):
         self.assertEqual(articles[0]['title'], '网速慢')
         self.assertEqual(articles[1]['title'], '找工作')
 
-    def test_comment_list_by_article_id(self):
-        response = self.client.get(url_for('main.comment_list_by_article_id', article_id=2))
+    def test_comment_list_by_article_slug(self):
+        response = self.client.get(url_for('main.comment_list_by_article_slug', article_slug='12345678'))
         json_data = response.get_json()
         comments = json_data['data']['comments']
         self.assertEqual(len(comments), 2)
@@ -202,7 +207,7 @@ class TestCase(unittest.TestCase):
         self.assertEqual(json_data['status'], 'OK')
 
         response = self.client.post(
-            url_for('main.edit_article', article_id=1),
+            url_for('main.edit_article', article_slug='01234567'),
             data={
                 'title': '学习使用WebGL制作小游戏',
                 'body': '...',
@@ -256,7 +261,7 @@ class TestCase(unittest.TestCase):
 
         new_comment_body = '666' * 100
         response = self.client.post(
-            url_for('main.publish_comment', article_id=1),
+            url_for('main.publish_comment', article_slug='01234567'),
             data={
                 'body': new_comment_body
             }
@@ -266,7 +271,7 @@ class TestCase(unittest.TestCase):
 
         new_comment_body = '666'
         response = self.client.post(
-            url_for('main.publish_comment', article_id=1),
+            url_for('main.publish_comment', article_slug='01234567'),
             data={
                 'body': new_comment_body
             }

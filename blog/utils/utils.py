@@ -1,3 +1,4 @@
+from uuid import uuid1
 from functools import wraps
 from threading import Thread
 
@@ -26,3 +27,9 @@ def permission_required(permission):
         return wrapper
     return decorator
 
+
+def gen_slug(length=8):
+    hash_value = hash(str(uuid1))
+    if hash_value < 0:
+        hash_value = -hash_value
+    return str(hash_value)[0:length]

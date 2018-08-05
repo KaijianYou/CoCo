@@ -30,4 +30,3 @@ class TestCase(unittest.TestCase):
         app = create_app('test')
         self.assertEqual(app.config['ENV'], 'test')
         self.assertTrue(app.config['TESTING'])
-

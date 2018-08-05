@@ -2,12 +2,14 @@ from datetime import timedelta
 
 from .mixin import db, Model, SearchableMixin
 from .comment import Comment
+from blog.utils.utils import gen_slug
 
 
 class Article(Model, SearchableMixin):
     __tablename__ = 'article'
     __searchable__ = ['body_text', 'tags', 'title']
 
+    slug = db.Column(db.String(16), index=True, nullable=False, unique=True)
     title = db.Column(db.String(64), nullable=False)
     body_text = db.Column(db.Text, nullable=False)
     view_count = db.Column(db.Integer, default=0)
@@ -19,13 +21,22 @@ class Article(Model, SearchableMixin):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        self.slug = self.gen_slug()
+
+    @classmethod
+    def gen_slug(cls):
+        while True:
+            temp_slug = gen_slug()
+            obj = cls.get_by_slug(slug=temp_slug)
+            if not obj:
+                return temp_slug
 
     def __repr__(self):
         return f'<Article({self.title!r})>'
 
     def to_json(self):
         return {
-            'id': self.id,
+            'slug': self.slug,
             'title': self.title,
             'bodyText': self.body_text,
             'viewCount': self.view_count,
@@ -60,6 +71,13 @@ class Article(Model, SearchableMixin):
             query = query.filter_by(enabled=enabled)
         order_param = cls.id.asc() if order == 'asc' else cls.id.desc()
         return query.order_by(order_param).paginate(page, per_page)
+
+    @classmethod
+    def get_by_slug(cls, slug, enabled=None):
+        query = cls.query
+        if enabled is not None:
+            query = query.filter_by(enabled=enabled)
+        return query.filter_by(slug=slug).first()
 
     @classmethod
     def list_tags(cls, enabled=None, order='asc'):

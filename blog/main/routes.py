@@ -21,7 +21,6 @@ blueprint = Blueprint('main', __name__)
 
 @blueprint.route('/articles/search', methods=['GET'])
 def search_articles():
-    """TODO: 根据关键词查找文章"""
     keyword = request.args.get('query', None)
     if not keyword:
         return generate_error_json(errors.QUERY_WORD_NOT_FOUND)
@@ -70,7 +69,7 @@ def archive():
             'title': article.title,
             'url': url_for(
                 'main.article_detail',
-                article_id=article.id,
+                article_slug=article.slug,
                 _external=True
             )
         }
@@ -81,9 +80,9 @@ def archive():
     return generate_success_json(result)
 
 
-@blueprint.route('/articles/<int:article_id>', methods=['GET'])
-def article_detail(article_id):
-    article = Article.get_by_id(article_id, enabled=True)
+@blueprint.route('/articles/<string:article_slug>', methods=['GET'])
+def article_detail(article_slug):
+    article = Article.get_by_slug(article_slug, enabled=True)
     if not article:
         return generate_error_json(errors.ARTICLE_NOT_EXISTS)
 
@@ -144,9 +143,9 @@ def article_list_by_tag(tag):
     return generate_success_json(result)
 
 
-@blueprint.route('/articles/<int:article_id>/comments', methods=['GET'])
-def comment_list_by_article_id(article_id):
-    article = Article.get_by_id(article_id, enabled=True)
+@blueprint.route('/articles/<string:article_slug>/comments', methods=['GET'])
+def comment_list_by_article_slug(article_slug):
+    article = Article.get_by_slug(article_slug, enabled=True)
     if not article:
         return generate_error_json(errors.ARTICLE_NOT_EXISTS)
     page = request.args.get('page', default=1, type=int)
@@ -179,15 +178,15 @@ def publish_article():
     return generate_success_json()
 
 
-@blueprint.route('/articles/<int:article_id>/edit', methods=['POST'])
+@blueprint.route('/articles/<string:article_slug>/edit', methods=['POST'])
 @login_required
 @permission_required(UserPermission.PUBLISH_ARTICLE)
-def edit_article(article_id):
+def edit_article(article_slug):
     """编辑文章"""
     form = ArticleDetailForm(meta={'csrf': False})
     if not form.validate_on_submit():
         return generate_error_json(errors.ILLEGAL_FORM)
-    article = Article.get_by_id(article_id, enabled=True)
+    article = Article.get_by_slug(article_slug, enabled=True)
     if not article:
         return generate_error_json(errors.ARTICLE_NOT_EXISTS)
     article.update(
@@ -212,12 +211,12 @@ def review_comment(comment_id):
     return generate_success_json()
 
 
-@blueprint.route('/articles/<int:article_id>/comment', methods=['POST'])
+@blueprint.route('/articles/<string:article_slug>/comment', methods=['POST'])
 @login_required
 @permission_required(UserPermission.COMMENT)
-def publish_comment(article_id):
+def publish_comment(article_slug):
     """发表评论"""
-    article = Article.get_by_id(article_id, enabled=True)
+    article = Article.get_by_slug(article_slug, enabled=True)
     if not article:
         return generate_error_json(errors.ARTICLE_NOT_EXISTS)
     form = CommentDetailForm(meta={'csrf': False})
