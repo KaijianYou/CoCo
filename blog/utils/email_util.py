@@ -163,4 +163,4 @@ class EmailUtil:
                 f'<p>感谢您使用CoCo</p>'
                 f'<p>CoCo团队</p>')
         cls.send_email(subject, body, cls.MAIL_USERNAME, to_emails)
-        
+

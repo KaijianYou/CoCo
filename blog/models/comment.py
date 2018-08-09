@@ -16,7 +16,7 @@ class Comment(Model):
     def __repr__(self):
         return f'<Comment({self.body!r})>'
 
-    def to_json(self):
+    def to_dict(self):
         return {
             'id': self.id,
             'body': self.body,

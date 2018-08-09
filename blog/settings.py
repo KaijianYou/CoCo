@@ -21,7 +21,7 @@ class Config:
     # Elasticsearch 配置
     ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL', None)
 
-    # 分页设置
+    # 分页大小
     ARTICLES_PER_PAGE = 10
     COMMENTS_PER_PAGE = 10
 

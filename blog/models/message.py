@@ -16,7 +16,7 @@ class Message(Model):
     def __repr__(self):
         return f'<Message({self.body!r})>'
 
-    def to_json(self):
+    def to_dict(self):
         return {
             'id': self.id,
             'received_time': (self.utc_created + timedelta(hours=8)).strftime('%Y-%m-%d %H:%M'),

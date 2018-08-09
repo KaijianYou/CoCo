@@ -19,28 +19,39 @@ from .forms import CommentDetailForm, ArticleDetailForm, MessageForm
 blueprint = Blueprint('main', __name__)
 
 
+def meta_data(page, page_size, total):
+    return {
+        '_meta': {
+            'page': page,
+            'pageSize': page_size,
+            'total': total
+        }
+    }
+
+
 @blueprint.route('/articles/search', methods=['GET'])
 def search_articles():
     keyword = request.args.get('query', None)
     if not keyword:
         return generate_error_json(errors.QUERY_WORD_NOT_FOUND)
     page = request.args.get('page', 1, type=int)
-    articles, total = Article.search(keyword, page, Constant.ARTICLE_PAGE_SIZE)
-    articles_json = [article.to_json() for article in articles]
-    result = {
-        'articles': articles_json,
-        'articleCount': total
+    page_size = Constant.ARTICLE_PAGE_SIZE
+    articles, total = Article.search(keyword, page, page_size)
+    articles_json = [article.to_dict() for article in articles]
+    data = {
+        'articles': articles_json
     }
-    return generate_success_json(result)
+    data.update(meta_data(page, page_size, total))
+    return generate_success_json(data)
 
 
 @blueprint.route('/categories/', methods=['GET'])
 def category_list():
     categories = Category.list_all(enabled=True)
-    result = {
-        'categories': [category.to_json() for category in categories]
+    data = {
+        'categories': [category.to_dict() for category in categories]
     }
-    return generate_success_json(result)
+    return generate_success_json(data)
 
 
 @blueprint.route('/tags/', methods=['GET'])
@@ -51,10 +62,10 @@ def tag_list():
         tag_list = t[0].split(',') if t[0] else []
         for tag in tag_list:
             tags_set.add(tag)
-    result = {
+    data = {
         'tags': list(tags_set)
     }
-    return generate_success_json(result)
+    return generate_success_json(data)
 
 
 @blueprint.route('/archive', methods=['GET'])
@@ -74,10 +85,10 @@ def archive():
             )
         }
         archive_dict[archive_date_str].append(article_json)
-    result = {
+    data = {
         'archive': archive_dict
     }
-    return generate_success_json(result)
+    return generate_success_json(data)
 
 
 @blueprint.route('/articles/<string:article_slug>', methods=['GET'])
@@ -88,27 +99,29 @@ def article_detail(article_slug):
 
     view_count = article.view_count + 1
     article.update(view_count=view_count)
-    result = {
-        'article': article.to_json()
+    data = {
+        'article': article.to_dict()
     }
-    return generate_success_json(result)
+    return generate_success_json(data)
 
 
 @blueprint.route('/articles/', methods=['GET'])
 def article_list():
     page = request.args.get('page', default=1, type=int)
+    page_size = Constant.ARTICLE_PAGE_SIZE
     pagination = Article.paginate(
         enabled=True,
         order='desc',
         page=page,
-        per_page=Constant.ARTICLE_PAGE_SIZE
+        per_page=page_size
     )
     articles = pagination.items
-    articles_json = [article.to_json() for article in articles]
-    result = {
+    articles_json = [article.to_dict() for article in articles]
+    data = {
         'articles': articles_json
     }
-    return generate_success_json(result)
+    data.update(meta_data(page, page_size, pagination.total))
+    return generate_success_json(data)
 
 
 @blueprint.route('/categories/<int:category_id>/articles/', methods=['GET'])
@@ -117,30 +130,34 @@ def article_list_by_category_id(category_id):
     if not category:
         return generate_error_json(errors.CATEGORY_NOT_EXISTS)
     page = request.args.get('page', default=1, type=int)
+    page_size = Constant.ARTICLE_PAGE_SIZE
     pagination = category.paginate_articles(
-        order='desc', page=page, per_page=Constant.ARTICLE_PAGE_SIZE
+        order='desc', page=page, per_page=page_size
     )
     articles = pagination.items
-    result = {
-        'articles': [article.to_json() for article in articles]
+    data = {
+        'articles': [article.to_dict() for article in articles]
     }
-    return generate_success_json(result)
+    data.update(meta_data(page, page_size, pagination.total))
+    return generate_success_json(data)
 
 
 @blueprint.route('/tags/<string:tag>/articles/', methods=['GET'])
 def article_list_by_tag(tag):
     page = request.args.get('page', default=1, type=int)
+    page_size = Constant.ARTICLE_PAGE_SIZE
     pagination = Article.paginate_by_tag(
         tag,
         order='desc',
         page=page,
-        per_page=Constant.ARTICLE_PAGE_SIZE
+        per_page=page_size
     )
     articles = pagination.items
-    result = {
-        'articles': [article.to_json() for article in articles]
+    data = {
+        'articles': [article.to_dict() for article in articles]
     }
-    return generate_success_json(result)
+    data.update(meta_data(page, page_size, pagination.total))
+    return generate_success_json(data)
 
 
 @blueprint.route('/articles/<string:article_slug>/comments', methods=['GET'])
@@ -149,14 +166,16 @@ def comment_list_by_article_slug(article_slug):
     if not article:
         return generate_error_json(errors.ARTICLE_NOT_EXISTS)
     page = request.args.get('page', default=1, type=int)
+    page_size = Constant.COMMENT_PAGE_SIZE
     pagination = article.paginate_comments(
-        order='desc', page=page, per_page=Constant.COMMENT_PAGE_SIZE
+        order='desc', page=page, per_page=page_size
     )
     comments = pagination.items
-    result = {
-        'comments': [comment.to_json() for comment in comments]
+    data = {
+        'comments': [comment.to_dict() for comment in comments]
     }
-    return generate_success_json(result)
+    data.update(meta_data(page, page_size, pagination.total))
+    return generate_success_json(data)
 
 
 @blueprint.route('/articles/publish', methods=['POST'])
@@ -267,16 +286,18 @@ def send_message(recipient_id):
 @login_required
 def message_list(filter_type):
     page = request.args.get('page', 1, type=int)
+    page_size = Constant.MESSAGE_PAGE_SIZE
     if filter_type == 'received':
         current_user.update(last_message_read_time=datetime.utcnow())
         pagination = current_user.message_received.order_by(Message.id.desc())\
-            .paginate(page, Constant.MESSAGE_PAGE_SIZE)
+            .paginate(page, page_size)
     elif filter_type == 'sent':
         pagination = current_user.message_sent.order_by(Message.id.desc())\
-            .paginate(page, Constant.MESSAGE_PAGE_SIZE)
+            .paginate(page, page_size)
     else:
         return generate_error_json(errors.FILTER_TYPE_ERROR)
-    result = {
-        'messages': [message.to_json() for message in pagination.items]
+    data = {
+        'messages': [message.to_dict() for message in pagination.items]
     }
-    return generate_success_json(result)
+    data.update(meta_data(page, page_size, pagination.total))
+    return generate_success_json(data)

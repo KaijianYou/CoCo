@@ -23,6 +23,7 @@ def register_extensions(app):
     db.init_app(app)
     login_manager.init_app(app)
     migrate.init_app(app, db)
+
     elasticsearch_url = app.config['ELASTICSEARCH_URL']
     app.elasticsearch = Elasticsearch([elasticsearch_url]) if elasticsearch_url else None
 

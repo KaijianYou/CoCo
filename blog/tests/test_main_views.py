@@ -86,7 +86,7 @@ class TestCase(unittest.TestCase):
         response = self.client.get(f'{url}?query={keyword}')
         json_data = response.get_json()
         result = json_data['data']
-        self.assertEqual(result['articleCount'], 2)
+        self.assertEqual(result['_meta']['total'], 2)
         article_slugs = [article['slug'] for article in result['articles']]
         self.assertEqual(article_slugs, ['12345678', '23456789'])
 
@@ -94,7 +94,7 @@ class TestCase(unittest.TestCase):
         response = self.client.get(f'{url}?query={keyword}')
         json_data = response.get_json()
         result = json_data['data']
-        self.assertEqual(result['articleCount'], 1)
+        self.assertEqual(result['_meta']['total'], 1)
         article_slugs = [article['slug'] for article in result['articles']]
         self.assertEqual(article_slugs, ['23456789'])
 
@@ -102,7 +102,7 @@ class TestCase(unittest.TestCase):
         response = self.client.get(f'{url}?query={keyword}')
         json_data = response.get_json()
         result = json_data['data']
-        self.assertEqual(result['articleCount'], 2)
+        self.assertEqual(result['_meta']['total'], 2)
         article_slugs = [article['slug'] for article in result['articles']]
         self.assertEqual(article_slugs, ['12345678', '01234567'])
 

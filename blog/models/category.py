@@ -15,7 +15,7 @@ class Category(Model):
     def __repr__(self):
         return f'<Category({self.name!r})>'
 
-    def to_json(self):
+    def to_dict(self):
         return {
             'name': self.name
         }

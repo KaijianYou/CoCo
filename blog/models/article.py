@@ -34,7 +34,7 @@ class Article(Model, SearchableMixin):
     def __repr__(self):
         return f'<Article({self.title!r})>'
 
-    def to_json(self):
+    def to_dict(self):
         return {
             'slug': self.slug,
             'title': self.title,
@@ -43,7 +43,7 @@ class Article(Model, SearchableMixin):
             'isEnabled': self.enabled,
             'createDatetime': self.utc_created + timedelta(hours=8),
             'updateDatetime': self.utc_updated + timedelta(hours=8),
-            'comments': [comment.to_json() for comment in self.comments],
+            'comments': [comment.to_dict() for comment in self.comments],
             'category': self.category.name,
             'tags': self.tags.split(',') if self.tags else [],
             'author': self.author.nickname

@@ -2,7 +2,6 @@ from uuid import uuid1
 from functools import wraps
 from threading import Thread
 
-from flask import jsonify
 from flask_login import current_user
 
 from blog.errors import PERMISSION_FORBIDDEN
@@ -12,8 +11,7 @@ from blog.utils.json_util import generate_error_json
 def async_task(func):
     @wraps(func)
     def decorator(*args, **kwargs):
-        thread = Thread(target=func, args=args, kwargs=kwargs)
-        thread.start()
+        Thread(target=func, args=args, kwargs=kwargs).start()
     return decorator
 
 
