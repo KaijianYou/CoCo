@@ -1,7 +1,7 @@
 from flask import jsonify
 
 
-def generate_success_json(result=None):
+def gen_success_json(result=None):
     result = {} if result is None else result
     data = {
         'status': 'OK',
@@ -10,7 +10,7 @@ def generate_success_json(result=None):
     return jsonify(data)
 
 
-def generate_error_json(error):
+def gen_error_json(error):
     data = {
         'status': 'ERROR',
         'errorCode': error.code,

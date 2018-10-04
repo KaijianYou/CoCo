@@ -4,8 +4,8 @@ from datetime import datetime, timedelta
 from flask import Blueprint, request, url_for
 from flask_login import login_required, current_user
 
-from blog.utils.json_util import generate_success_json, generate_error_json
-from blog.utils.utils import permission_required
+from blog.utils.json_util import gen_success_json, gen_error_json
+from blog.utils.other_utils import permission_required
 from blog.models.category import Category
 from blog.models.user import User, UserPermission
 from blog.models.article import Article
@@ -33,7 +33,7 @@ def meta_data(page, page_size, total):
 def search_articles():
     keyword = request.args.get('query', None)
     if not keyword:
-        return generate_error_json(errors.QUERY_WORD_NOT_FOUND)
+        return gen_error_json(errors.QUERY_WORD_NOT_FOUND)
     page = request.args.get('page', 1, type=int)
     page_size = Constant.ARTICLE_PAGE_SIZE
     articles, total = Article.search(keyword, page, page_size)
@@ -42,7 +42,7 @@ def search_articles():
         'articles': articles_json
     }
     data.update(meta_data(page, page_size, total))
-    return generate_success_json(data)
+    return gen_success_json(data)
 
 
 @blueprint.route('/categories/', methods=['GET'])
@@ -51,7 +51,7 @@ def category_list():
     data = {
         'categories': [category.to_dict() for category in categories]
     }
-    return generate_success_json(data)
+    return gen_success_json(data)
 
 
 @blueprint.route('/tags/', methods=['GET'])
@@ -65,7 +65,7 @@ def tag_list():
     data = {
         'tags': list(tags_set)
     }
-    return generate_success_json(data)
+    return gen_success_json(data)
 
 
 @blueprint.route('/archive', methods=['GET'])
@@ -88,21 +88,21 @@ def archive():
     data = {
         'archive': archive_dict
     }
-    return generate_success_json(data)
+    return gen_success_json(data)
 
 
 @blueprint.route('/articles/<string:article_slug>', methods=['GET'])
 def article_detail(article_slug):
     article = Article.get_by_slug(article_slug, enabled=True)
     if not article:
-        return generate_error_json(errors.ARTICLE_NOT_EXISTS)
+        return gen_error_json(errors.ARTICLE_NOT_EXISTS)
 
     view_count = article.view_count + 1
     article.update(view_count=view_count)
     data = {
         'article': article.to_dict()
     }
-    return generate_success_json(data)
+    return gen_success_json(data)
 
 
 @blueprint.route('/articles/', methods=['GET'])
@@ -121,14 +121,14 @@ def article_list():
         'articles': articles_json
     }
     data.update(meta_data(page, page_size, pagination.total))
-    return generate_success_json(data)
+    return gen_success_json(data)
 
 
 @blueprint.route('/categories/<int:category_id>/articles/', methods=['GET'])
 def article_list_by_category_id(category_id):
     category = Category.get_by_id(category_id, enabled=True)
     if not category:
-        return generate_error_json(errors.CATEGORY_NOT_EXISTS)
+        return gen_error_json(errors.CATEGORY_NOT_EXISTS)
     page = request.args.get('page', default=1, type=int)
     page_size = Constant.ARTICLE_PAGE_SIZE
     pagination = category.paginate_articles(
@@ -139,7 +139,7 @@ def article_list_by_category_id(category_id):
         'articles': [article.to_dict() for article in articles]
     }
     data.update(meta_data(page, page_size, pagination.total))
-    return generate_success_json(data)
+    return gen_success_json(data)
 
 
 @blueprint.route('/tags/<string:tag>/articles/', methods=['GET'])
@@ -157,14 +157,14 @@ def article_list_by_tag(tag):
         'articles': [article.to_dict() for article in articles]
     }
     data.update(meta_data(page, page_size, pagination.total))
-    return generate_success_json(data)
+    return gen_success_json(data)
 
 
 @blueprint.route('/articles/<string:article_slug>/comments', methods=['GET'])
 def comment_list_by_article_slug(article_slug):
     article = Article.get_by_slug(article_slug, enabled=True)
     if not article:
-        return generate_error_json(errors.ARTICLE_NOT_EXISTS)
+        return gen_error_json(errors.ARTICLE_NOT_EXISTS)
     page = request.args.get('page', default=1, type=int)
     page_size = Constant.COMMENT_PAGE_SIZE
     pagination = article.paginate_comments(
@@ -175,7 +175,7 @@ def comment_list_by_article_slug(article_slug):
         'comments': [comment.to_dict() for comment in comments]
     }
     data.update(meta_data(page, page_size, pagination.total))
-    return generate_success_json(data)
+    return gen_success_json(data)
 
 
 @blueprint.route('/articles/publish', methods=['POST'])
@@ -185,7 +185,7 @@ def publish_article():
     """发表文章"""
     form = ArticleDetailForm(meta={'csrf': False})
     if not form.validate_on_submit():
-        return generate_error_json(errors.ILLEGAL_FORM)
+        return gen_error_json(errors.ILLEGAL_FORM)
 
     Article.create(
         title=form.title.data,
@@ -194,7 +194,7 @@ def publish_article():
         author_id=current_user.id,
         tags=form.tags.data
     )
-    return generate_success_json()
+    return gen_success_json()
 
 
 @blueprint.route('/articles/<string:article_slug>/edit', methods=['POST'])
@@ -204,17 +204,17 @@ def edit_article(article_slug):
     """编辑文章"""
     form = ArticleDetailForm(meta={'csrf': False})
     if not form.validate_on_submit():
-        return generate_error_json(errors.ILLEGAL_FORM)
+        return gen_error_json(errors.ILLEGAL_FORM)
     article = Article.get_by_slug(article_slug, enabled=True)
     if not article:
-        return generate_error_json(errors.ARTICLE_NOT_EXISTS)
+        return gen_error_json(errors.ARTICLE_NOT_EXISTS)
     article.update(
         title=form.title.data,
         body_text=form.body.data,
         category_id=form.category_id.data,
         tags=form.tags.data
     )
-    return generate_success_json()
+    return gen_success_json()
 
 
 @blueprint.route('/comments/<int:comment_id>/change-state', methods=['POST'])
@@ -224,10 +224,10 @@ def review_comment(comment_id):
     """管理评论"""
     comment = Comment.get_by_id(comment_id)
     if not comment:
-        return generate_error_json(errors.COMMENT_NOT_EXISTS)
+        return gen_error_json(errors.COMMENT_NOT_EXISTS)
     enabled = not comment.enabled
     comment.update(enabled=enabled)
-    return generate_success_json()
+    return gen_success_json()
 
 
 @blueprint.route('/articles/<string:article_slug>/comment', methods=['POST'])
@@ -237,16 +237,16 @@ def publish_comment(article_slug):
     """发表评论"""
     article = Article.get_by_slug(article_slug, enabled=True)
     if not article:
-        return generate_error_json(errors.ARTICLE_NOT_EXISTS)
+        return gen_error_json(errors.ARTICLE_NOT_EXISTS)
     form = CommentDetailForm(meta={'csrf': False})
     if not form.validate_on_submit():
-        return generate_error_json(errors.ILLEGAL_FORM)
+        return gen_error_json(errors.ILLEGAL_FORM)
     Comment.create(
         body=form.body.data,
         author_id=current_user.id,
         article_id=article.id
     )
-    return generate_success_json()
+    return gen_success_json()
 
 
 @blueprint.route('/comments/<int:comment_id>/modify', methods=['POST'])
@@ -256,14 +256,14 @@ def modify_comment(comment_id):
     """修改评论"""
     comment = Comment.get_by_id(comment_id, enabled=True)
     if not comment:
-        return generate_error_json(errors.COMMENT_NOT_EXISTS)
+        return gen_error_json(errors.COMMENT_NOT_EXISTS)
     if comment.author_id != current_user.id:
-        return generate_error_json(errors.USER_PERMISSION_DENIED)
+        return gen_error_json(errors.USER_PERMISSION_DENIED)
     form = CommentDetailForm(meta={'csrf': False})
     if not form.validate_on_submit():
-        return generate_error_json(errors.ILLEGAL_FORM)
+        return gen_error_json(errors.ILLEGAL_FORM)
     comment.update(body=form.body.data)
-    return generate_success_json()
+    return gen_success_json()
 
 
 @blueprint.route('/send-message/<string:recipient_id>', methods=['POST'])
@@ -272,14 +272,14 @@ def modify_comment(comment_id):
 def send_message(recipient_id):
     form = MessageForm(meta={'csrf': False})
     if not form.validate_on_submit():
-        return generate_error_json(errors.ILLEGAL_FORM)
+        return gen_error_json(errors.ILLEGAL_FORM)
     if current_user.id == recipient_id:
-        return generate_error_json(errors.INTERNAL_ERROR)
+        return gen_error_json(errors.INTERNAL_ERROR)
     user = User.get_by_id(recipient_id, enabled=True)
     if not user:
-        return generate_error_json(errors.USER_NOT_EXISTS)
+        return gen_error_json(errors.USER_NOT_EXISTS)
     Message.create(sender=current_user, recipient=user, body=form.body.data)
-    return generate_success_json()
+    return gen_success_json()
 
 
 @blueprint.route('/messages/<string:filter_type>')
@@ -295,9 +295,9 @@ def message_list(filter_type):
         pagination = current_user.message_sent.order_by(Message.id.desc())\
             .paginate(page, page_size)
     else:
-        return generate_error_json(errors.FILTER_TYPE_ERROR)
+        return gen_error_json(errors.FILTER_TYPE_ERROR)
     data = {
         'messages': [message.to_dict() for message in pagination.items]
     }
     data.update(meta_data(page, page_size, pagination.total))
-    return generate_success_json(data)
+    return gen_success_json(data)

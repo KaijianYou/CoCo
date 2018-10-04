@@ -10,13 +10,22 @@ def create_app(config_env):
     app = Flask(__name__)
     app.config.from_object(config[config_env])
     config[config_env].init_app(app)
+    try:
+        init_app(app)
+    except Exception as e:
+        app.logger.error(e)
+        raise e
+    return app
+
+
+def init_app(app):
     init_const(app.config['ENV'])
+
     register_extensions(app)
     register_blueprints(app)
     register_error_handler(app)
     register_shell_context(app)
     register_commands(app)
-    return app
 
 
 def register_extensions(app):
@@ -43,17 +52,17 @@ def register_blueprints(app):
 
 
 def register_error_handler(app):
-    from blog.utils.json_util import generate_error_json
+    from blog.utils.json_util import gen_error_json
     from blog.errors import BAD_REQUEST, PERMISSION_FORBIDDEN, UNAUTHORIZED
 
     def bad_request(e):
-        return generate_error_json(BAD_REQUEST)
+        return gen_error_json(BAD_REQUEST)
 
     def unauthorized(e):
-        return generate_error_json(UNAUTHORIZED)
+        return gen_error_json(UNAUTHORIZED)
 
     def permission_forbidden(e):
-        return generate_error_json(PERMISSION_FORBIDDEN)
+        return gen_error_json(PERMISSION_FORBIDDEN)
 
     app.register_error_handler(400, bad_request)
     app.register_error_handler(401, unauthorized)

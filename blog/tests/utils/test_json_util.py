@@ -3,7 +3,7 @@ import unittest
 from json import loads
 
 from blog.app import create_app, db
-from blog.utils.json_util import generate_success_json, generate_error_json
+from blog.utils.json_util import gen_success_json, gen_error_json
 from blog.errors import PERMISSION_FORBIDDEN
 
 
@@ -19,13 +19,13 @@ class TestCase(unittest.TestCase):
         db.drop_all()
         self.app_context.pop()
 
-    def test_generate_success_json(self):
+    def test_gen_success_json(self):
         result = {
             'nickname': 'panda',
             'email': 'panda@gmail.com',
             'id': 12
         }
-        json_response = generate_success_json(result)
+        json_response = gen_success_json(result)
         result_json = loads(json_response.response[0])
         expected_result_json = {
             'status': 'OK',
@@ -37,8 +37,8 @@ class TestCase(unittest.TestCase):
         }
         self.assertEqual(result_json, expected_result_json)
 
-    def test_generate_error_json(self):
-        json_response = generate_error_json(PERMISSION_FORBIDDEN)
+    def test_gen_error_json(self):
+        json_response = gen_error_json(PERMISSION_FORBIDDEN)
         error_json = loads(json_response.response[0])
         expected_error_json = {
             'status': 'ERROR',

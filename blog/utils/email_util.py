@@ -8,7 +8,7 @@ from email.mime.base import MIMEBase
 from email.encoders import encode_base64
 from email.utils import formatdate
 
-from blog.utils.utils import async_task
+from blog.utils.other_utils import async_task
 
 
 class _Attachment:
@@ -81,7 +81,9 @@ class _Message:
 
 
 class Email(object):
-    def __init__(self, mail_server, mail_username, mail_password, mail_port, mail_use_tls, mail_use_ssl):
+    def __init__(self, mail_server, mail_username,
+                 mail_password, mail_port,
+                 mail_use_tls, mail_use_ssl):
         self.mail_server = mail_server or '127.0.0.1'
         self.mail_username = mail_username
         self.mail_password = mail_password
