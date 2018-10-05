@@ -53,7 +53,7 @@ def register_blueprints(app):
 
 def register_error_handler(app):
     from blog.utils.json_util import gen_error_json
-    from blog.errors import BAD_REQUEST, PERMISSION_FORBIDDEN, UNAUTHORIZED
+    from blog.errors import BAD_REQUEST, PERMISSION_FORBIDDEN, UNAUTHORIZED, NOT_FOUND, METHOD_NOT_ALLOWED
 
     def bad_request(e):
         return gen_error_json(BAD_REQUEST)
@@ -64,9 +64,17 @@ def register_error_handler(app):
     def permission_forbidden(e):
         return gen_error_json(PERMISSION_FORBIDDEN)
 
+    def not_found(e):
+        return gen_error_json(NOT_FOUND)
+
+    def method_not_allowed(e):
+        return gen_error_json(METHOD_NOT_ALLOWED)
+
     app.register_error_handler(400, bad_request)
     app.register_error_handler(401, unauthorized)
     app.register_error_handler(403, permission_forbidden)
+    app.register_error_handler(404, not_found)
+    app.register_error_handler(405, method_not_allowed)
 
 
 def register_shell_context(app):

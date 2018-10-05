@@ -66,11 +66,12 @@ def request_password_reset():
     if not user:
         return gen_error_json(errors.EMAIL_NOT_REGISTERED)
 
-    token = user.get_password_reset_token()
+    # token = user.get_password_reset_token()
+    token = User.get_password_reset_token(user.id)
     EmailUtil.send_password_reset_email(
         [user.email],
         user.nickname,
-        url_for('auth.reset_password', token=token, _external=True)
+        url_for('auth.verify_password_token', token=token, _external=True)
     )
     return gen_success_json()
 

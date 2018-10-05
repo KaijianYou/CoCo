@@ -9,6 +9,8 @@ class BaseError:
 BAD_REQUEST = BaseError('BAD_REQUEST', '无效的请求')
 UNAUTHORIZED = BaseError('UNAUTHORIZED', '未登录')
 PERMISSION_FORBIDDEN = BaseError('PERMISSION_FORBIDDEN', '没有权限')
+NOT_FOUND = BaseError('NOT_FOUND', '找不到请求的页面')
+METHOD_NOT_ALLOWED = BaseError('METHOD_NOT_ALLOWED', '请求中指定的方法不被允许')
 QUERY_WORD_NOT_FOUND = BaseError('QUERY_WORD_NOT_FOUND', '找不到查找关键词')
 CATEGORY_NOT_EXISTS = BaseError('CATEGORY_NOT_EXISTS', '目录不存在')
 ARTICLE_NOT_EXISTS = BaseError('ARTICLE_NOT_EXISTS', '文章不存在')

@@ -20,7 +20,7 @@ class ModelMixin:
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     utc_created = db.Column(db.DateTime(False), default=datetime.utcnow)
     utc_updated = db.Column(db.DateTime(False), default=datetime.utcnow)
-    enabled = db.Column(db.Boolean, default=True)
+    enabled = db.Column(db.Boolean, default=True)  # 表示是否逻辑删除
 
     @classmethod
     def create(cls, *args, **kwargs):

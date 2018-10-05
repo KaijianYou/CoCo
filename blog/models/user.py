@@ -110,9 +110,10 @@ class User(Model, UserMixin):
             query = query.filter_by(enabled=enabled)
         return query.filter(or_(cls.email == email, cls.nickname == nickname)).first()
 
-    def get_password_reset_token(self, expire_in_seconds=30*60):
+    @classmethod
+    def get_password_reset_token(cls, user_id, expire_in_seconds=30*60):
         return jwt.encode(
-            {'reset_password': self.id, 'exp': time.time() + expire_in_seconds},
+            {'reset_password': user_id, 'exp': time.time() + expire_in_seconds},
             current_app.config['SECRET_KEY'], algorithm='HS256'
         ).decode('utf-8')
 
