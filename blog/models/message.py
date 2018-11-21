@@ -22,3 +22,10 @@ class Message(Model):
             'received_time': (self.utc_created + timedelta(hours=8)).strftime('%Y-%m-%d %H:%M'),
             'body': self.body
         }
+
+    @classmethod
+    def get_latest_by_sender_id(cls, sender_id, enabled=None):
+        query = cls.query
+        if enabled is not None:
+            query = query.filter_by(enabled=enabled)
+        return query.filter_by(sender_id=sender_id).order_by(cls.id.desc()).first()

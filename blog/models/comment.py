@@ -23,3 +23,10 @@ class Comment(Model):
             'author': self.author.nickname,
             'createDatetime': self.utc_created + timedelta(hours=8)
         }
+
+    @classmethod
+    def get_latest_by_article_id(cls, article_id, enabled=None):
+        query = cls.query
+        if enabled is not None:
+            query = query.filter_by(enabled=enabled)
+        return query.filter_by(article_id=article_id).order_by(cls.id.desc()).first()

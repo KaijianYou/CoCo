@@ -142,7 +142,7 @@ class TestCase(unittest.TestCase):
         json_data = response.get_json()
         self.assertEqual(json_data['status'], 'OK')
 
-        article = Article.query.filter_by(title='Flask框架初探', enabled=True).first()
+        article = Article.get_by_title(title='Flask框架初探', enabled=True)
         self.assertEqual(article.body_text, 'Flask框架是一个用Python实现的微框架。...')
         self.assertEqual(article.category_id, 1)
         self.assertEqual(article.tags, 'Python,Flask,Web')
@@ -231,10 +231,7 @@ class TestCase(unittest.TestCase):
         json_data = response.get_json()
         self.assertEqual(json_data['status'], 'OK')
 
-        comment = Comment.query\
-            .filter_by(article_id=1, enabled=True)\
-            .order_by(Comment.id.desc())\
-            .first()
+        comment = Comment.get_latest_by_article_id(article_id=1, enabled=True)
         self.assertEqual(comment.body, new_comment_body)
 
     def test_modify_comment(self):
@@ -287,6 +284,6 @@ class TestCase(unittest.TestCase):
         )
         json_data = response.get_json()
         self.assertEqual(json_data['status'], 'OK')
-        message = Message.query.filter_by(enabled=True, sender_id=1).order_by(Message.id.desc()).first()
+        message = Message.get_latest_by_sender_id(sender_id=1, enabled=True)
         self.assertTrue(message is not None)
         self.assertEqual(message.recipient_id, 2)

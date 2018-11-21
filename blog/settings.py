@@ -99,10 +99,12 @@ class ProdConfig(Config):
         from logging.handlers import TimedRotatingFileHandler
         from logging import Formatter
 
-        file_handler = TimedRotatingFileHandler(filename='/var/log/www/coco/coco.log',
-                                                when='midnight',
-                                                interval=1,
-                                                backupCount=30)
+        file_handler = TimedRotatingFileHandler(
+            filename='/var/log/www/coco/coco.log',
+            when='midnight',
+            interval=1,
+            backupCount=30
+        )
         file_handler.setLevel(logging.WARNING)
         file_handler.suffix = '%Y-%m-%d.log'
         formatter = Formatter(

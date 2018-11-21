@@ -16,11 +16,6 @@ class TestCase(unittest.TestCase):
         db.drop_all()
         self.app_context.pop()
 
-    def test_production_config(self):
-        app = create_app('production')
-        self.assertEqual(app.config['ENV'], 'production')
-        self.assertFalse(app.config['DEBUG'])
-
     def test_development_config(self):
         app = create_app('development')
         self.assertEqual(app.config['ENV'], 'development')

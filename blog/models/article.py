@@ -87,6 +87,13 @@ class Article(Model, SearchableMixin):
         order_param = cls.id.asc() if order == 'asc' else cls.id.desc()
         return query.order_by(order_param).with_entities(cls.tags).all()
 
+    @classmethod
+    def get_by_title(cls, title, enabled=None):
+        query = cls.query
+        if enabled is not None:
+            query = query.filter_by(enabled=enabled)
+        return query.filter_by(title=title).first()
+
 
 db.event.listen(db.session, 'before_commit', Article.before_commit)
 db.event.listen(db.session, 'after_commit', Article.after_commit)
