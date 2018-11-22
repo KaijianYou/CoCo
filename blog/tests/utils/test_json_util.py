@@ -26,7 +26,7 @@ class TestCase(unittest.TestCase):
         json_response = gen_success_json(result)
         result_json = loads(json_response.response[0])
         expected_result_json = {
-            'status': 'OK',
+            'success': True,
             'data': {
                 'nickname': 'panda',
                 'email': 'panda@gmail.com',
@@ -39,7 +39,7 @@ class TestCase(unittest.TestCase):
         json_response = gen_error_json(PERMISSION_FORBIDDEN)
         error_json = loads(json_response.response[0])
         expected_error_json = {
-            'status': 'ERROR',
+            'success': False,
             'errorCode': 'PERMISSION_FORBIDDEN',
             'errorMessage': '没有权限'
         }

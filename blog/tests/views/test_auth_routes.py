@@ -33,7 +33,7 @@ class TestCase(unittest.TestCase):
             }
         )
         json_data = response.get_json()
-        self.assertEqual(json_data['status'], 'OK')
+        self.assertTrue(json_data['success'])
 
     def test_login_with_wrong_password(self):
         url = url_for('auth.login')
@@ -110,7 +110,7 @@ class TestCase(unittest.TestCase):
             }
         )
         json_data = response.get_json()
-        self.assertEqual(json_data['status'], 'OK')
+        self.assertTrue(json_data['success'])
         user = User.get_by_email(admin_email, enabled=True)
         self.assertFalse(user is None)
         self.assertEqual(user.role, UserRole.ADMINISTRATOR)
@@ -125,14 +125,14 @@ class TestCase(unittest.TestCase):
             }
         )
         json_data = response.get_json()
-        self.assertEqual(json_data['status'], 'OK')
+        self.assertTrue(json_data['success'])
 
         response = self.client.post(
             url_for('auth.logout'),
             data={}
         )
         json_data = response.get_json()
-        self.assertEqual(json_data['status'], 'OK')
+        self.assertTrue(json_data['success'])
 
     def test_request_password_reset_after_login(self):
         # 登录
@@ -144,7 +144,7 @@ class TestCase(unittest.TestCase):
             }
         )
         json_data = response.get_json()
-        self.assertEqual(json_data['status'], 'OK')
+        self.assertTrue(json_data['success'])
 
         response = self.client.post(
             url_for('auth.request_password_reset'),
@@ -184,7 +184,7 @@ class TestCase(unittest.TestCase):
                 }
             )
             json_data = response.get_json()
-            self.assertEqual(json_data['status'], 'OK')
+            self.assertTrue(json_data['success'])
 
             EmailUtil.send_password_reset_email.assert_called_once_with(
                 ['panda@gmail.com'],
@@ -202,7 +202,7 @@ class TestCase(unittest.TestCase):
             }
         )
         json_data = response.get_json()
-        self.assertEqual(json_data['status'], 'OK')
+        self.assertTrue(json_data['success'])
 
         response = self.client.get(
             url_for('auth.verify_password_token', token='I am a token')
@@ -227,7 +227,7 @@ class TestCase(unittest.TestCase):
             }
         )
         json_data = response.get_json()
-        self.assertEqual(json_data['status'], 'OK')
+        self.assertTrue(json_data['success'])
 
         response = self.client.post(
             url_for('auth.reset_password', user_id=1)
@@ -255,6 +255,6 @@ class TestCase(unittest.TestCase):
             }
         )
         json_data = response.get_json()
-        self.assertEqual(json_data['status'], 'OK')
+        self.assertTrue(json_data['success'])
         user = User.get_by_id(1, enabled=True)
         self.assertTrue(user.verify_password('123456789'))

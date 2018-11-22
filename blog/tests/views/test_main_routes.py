@@ -128,7 +128,7 @@ class TestCase(unittest.TestCase):
             }
         )
         json_data = response.get_json()
-        self.assertEqual(json_data['status'], 'OK')
+        self.assertTrue(json_data['success'])
 
         response = self.client.post(
             url_for('main.publish_article'),
@@ -140,7 +140,7 @@ class TestCase(unittest.TestCase):
             }
         )
         json_data = response.get_json()
-        self.assertEqual(json_data['status'], 'OK')
+        self.assertTrue(json_data['success'])
 
         article = Article.get_by_title(title='Flask框架初探', enabled=True)
         self.assertEqual(article.body_text, 'Flask框架是一个用Python实现的微框架。...')
@@ -156,7 +156,7 @@ class TestCase(unittest.TestCase):
             }
         )
         json_data = response.get_json()
-        self.assertEqual(json_data['status'], 'OK')
+        self.assertTrue(json_data['success'])
 
         response = self.client.post(
             url_for('main.edit_article', article_slug='01234567'),
@@ -168,7 +168,7 @@ class TestCase(unittest.TestCase):
             }
         )
         json_data = response.get_json()
-        self.assertEqual(json_data['status'], 'OK')
+        self.assertTrue(json_data['success'])
 
         article = Article.get_by_id(1, enabled=True)
         self.assertEqual(article.title, '学习使用WebGL制作小游戏')
@@ -185,14 +185,14 @@ class TestCase(unittest.TestCase):
             }
         )
         json_data = response.get_json()
-        self.assertEqual(json_data['status'], 'OK')
+        self.assertTrue(json_data['success'])
 
         response = self.client.post(
             url_for('main.review_comment', comment_id=1),
             data={}
         )
         json_data = response.get_json()
-        self.assertEqual(json_data['status'], 'OK')
+        self.assertTrue(json_data['success'])
         comment = Comment.get_by_id(1)
         self.assertEqual(comment.enabled, False)
 
@@ -201,7 +201,7 @@ class TestCase(unittest.TestCase):
             data={}
         )
         json_data = response.get_json()
-        self.assertEqual(json_data['status'], 'OK')
+        self.assertTrue(json_data['success'])
         comment = Comment.get_by_id(1)
         self.assertEqual(comment.enabled, True)
 
@@ -209,7 +209,7 @@ class TestCase(unittest.TestCase):
         url = url_for('auth.login')
         response = self.client.post(url, data={'email': 'panda@gmail.com', 'password': '123456'})
         json_data = response.get_json()
-        self.assertEqual(json_data['status'], 'OK')
+        self.assertTrue(json_data['success'])
 
         new_comment_body = '666' * 100
         response = self.client.post(
@@ -229,7 +229,7 @@ class TestCase(unittest.TestCase):
             }
         )
         json_data = response.get_json()
-        self.assertEqual(json_data['status'], 'OK')
+        self.assertTrue(json_data['success'])
 
         comment = Comment.get_latest_by_article_id(article_id=1, enabled=True)
         self.assertEqual(comment.body, new_comment_body)
@@ -238,7 +238,7 @@ class TestCase(unittest.TestCase):
         url = url_for('auth.login')
         response = self.client.post(url, data={'email': 'panda@gmail.com', 'password': '123456'})
         json_data = response.get_json()
-        self.assertEqual(json_data['status'], 'OK')
+        self.assertTrue(json_data['success'])
 
         new_comment_body = '好好准备面试'
         response = self.client.post(
@@ -248,7 +248,7 @@ class TestCase(unittest.TestCase):
             }
         )
         json_data = response.get_json()
-        self.assertEqual(json_data['status'], 'OK')
+        self.assertTrue(json_data['success'])
         comment = Comment.get_by_id(1, enabled=True)
         self.assertEqual(comment.body, new_comment_body)
 
@@ -256,7 +256,7 @@ class TestCase(unittest.TestCase):
         url = url_for('auth.login')
         response = self.client.post(url, data={'email': 'panda@gmail.com', 'password': '123456'})
         json_data = response.get_json()
-        self.assertEqual(json_data['status'], 'OK')
+        self.assertTrue(json_data['success'])
 
         url = url_for('main.message_list', filter_type='sent')
         response = self.client.get(url)
@@ -274,7 +274,7 @@ class TestCase(unittest.TestCase):
         url = url_for('auth.login')
         response = self.client.post(url, data={'email': 'panda@gmail.com', 'password': '123456'})
         json_data = response.get_json()
-        self.assertEqual(json_data['status'], 'OK')
+        self.assertTrue(json_data['success'])
 
         url = url_for('main.send_message', recipient_id=2)
         response = self.client.post(url,
@@ -283,7 +283,7 @@ class TestCase(unittest.TestCase):
             }
         )
         json_data = response.get_json()
-        self.assertEqual(json_data['status'], 'OK')
+        self.assertTrue(json_data['success'])
         message = Message.get_latest_by_sender_id(sender_id=1, enabled=True)
         self.assertTrue(message is not None)
         self.assertEqual(message.recipient_id, 2)
