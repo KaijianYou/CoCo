@@ -74,8 +74,8 @@ def archive():
     archive_dict = defaultdict(list)
     for article in articles:
         article_create_datetime = article.utc_created + timedelta(hours=8)
-        archive_date_str = f'{article_create_datetime.year}年'\
-                           f'{article_create_datetime.month}月'
+        archive_date_str = (f'{article_create_datetime.year}年'
+                            f'{article_create_datetime.month}月')
         article_json = {
             'title': article.title,
             'url': url_for(

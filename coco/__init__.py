@@ -1,15 +1,15 @@
 from flask import Flask
 from elasticsearch import Elasticsearch
 
-from coco.extensions import db, login_manager, migrate
 from coco.settings import config
 from coco.const import init_const
+from coco.extensions import db, login_manager, migrate
 
 
-def create_app(config_env):
+def create_app(env):
     app = Flask(__name__)
-    app.config.from_object(config[config_env])
-    config[config_env].init_app(app)
+    app.config.from_object(config[env])
+    config[env].init_app(app)
     try:
         init_app(app)
     except Exception as e:
@@ -46,9 +46,10 @@ def register_extensions(app):
 
 
 def register_blueprints(app):
-    from coco import main, auth
+    from coco import blog, auth, admin
     app.register_blueprint(auth.routes.blueprint, url_prefix='/api/auth')
-    app.register_blueprint(main.routes.blueprint, url_prefix='/api')
+    app.register_blueprint(blog.routes.blueprint, url_prefix='/api/blog')
+    app.register_blueprint(admin.routes.blueprint, url_prefix='/api/admin')
 
 
 def register_error_handler(app):

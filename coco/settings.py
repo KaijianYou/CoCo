@@ -5,6 +5,7 @@ from flask import g
 from flask_sqlalchemy import get_debug_queries
 from dotenv import load_dotenv
 
+
 BASE_DIR = os.path.abspath(os.path.dirname(__file__))
 load_dotenv(os.path.join(BASE_DIR, '.env'))
 
