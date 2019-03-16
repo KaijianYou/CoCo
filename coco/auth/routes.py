@@ -2,10 +2,10 @@ from flask import Blueprint, current_app, url_for
 from flask_login import login_user, logout_user, login_required, current_user
 
 from .forms import LoginForm, RegisterForm, ResetPasswordForm, RequestPasswordResetForm
-from blog import errors
-from blog.models.user import User, UserRole
-from blog.utils.json_util import gen_success_json, gen_error_json
-from blog.utils.email_util import EmailUtil
+from coco import errors
+from coco.models.user import User, UserRole
+from coco.utils.json_util import gen_success_json, gen_error_json
+from coco.utils.email_util import EmailUtil
 
 
 blueprint = Blueprint('auth', __name__)

@@ -1,10 +1,10 @@
 from datetime import datetime
 
-from blog.models.user import User, UserRole
-from blog.models.category import Category
-from blog.models.article import Article
-from blog.models.comment import Comment
-from blog.models.message import Message
+from coco.models.user import User, UserRole
+from coco.models.category import Category
+from coco.models.article import Article
+from coco.models.comment import Comment
+from coco.models.message import Message
 
 
 def create_fake_data():

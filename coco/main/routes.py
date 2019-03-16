@@ -4,15 +4,15 @@ from datetime import datetime, timedelta
 from flask import Blueprint, request, url_for
 from flask_login import login_required, current_user
 
-from blog.utils.json_util import gen_success_json, gen_error_json
-from blog.utils.other_utils import permission_required
-from blog.models.category import Category
-from blog.models.user import User, UserPermission
-from blog.models.article import Article
-from blog.models.comment import Comment
-from blog.models.message import Message
-from blog.const import Constant
-from blog import errors
+from coco.utils.json_util import gen_success_json, gen_error_json
+from coco.utils.other_utils import permission_required
+from coco.models.category import Category
+from coco.models.user import User, UserPermission
+from coco.models.article import Article
+from coco.models.comment import Comment
+from coco.models.message import Message
+from coco.const import Constant
+from coco import errors
 from .forms import CommentDetailForm, ArticleDetailForm, MessageForm
 
 

@@ -1,6 +1,6 @@
 import unittest
 
-from blog.app import create_app, db
+from coco import create_app, db
 
 
 class TestCase(unittest.TestCase):

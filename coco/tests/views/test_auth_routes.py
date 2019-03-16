@@ -3,10 +3,10 @@ from unittest.mock import MagicMock, patch
 
 from flask import url_for, current_app
 
-from blog.app import create_app, db
-from blog.models.user import User, UserRole
-from blog.utils.testing_utils import create_user_data
-from blog.utils.email_util import EmailUtil
+from coco import create_app, db
+from coco.models.user import User, UserRole
+from coco.utils.testing_utils import create_user_data
+from coco.utils.email_util import EmailUtil
 
 
 class TestCase(unittest.TestCase):

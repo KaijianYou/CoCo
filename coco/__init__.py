@@ -1,9 +1,9 @@
 from flask import Flask
 from elasticsearch import Elasticsearch
 
-from blog.extensions import db, login_manager, migrate
-from blog.settings import config
-from blog.const import init_const
+from coco.extensions import db, login_manager, migrate
+from coco.settings import config
+from coco.const import init_const
 
 
 def create_app(config_env):
@@ -34,7 +34,7 @@ def register_extensions(app):
     migrate.init_app(app, db)
 
     elasticsearch_url = app.config['ELASTICSEARCH_URL']
-    app.elasticsearch = Elasticsearch([elasticsearch_url]) if elasticsearch_url else None
+    setattr(app, 'elasticsearch', Elasticsearch([elasticsearch_url]) if elasticsearch_url else None)
 
     from .models.user import User, AnonymousUser
     login_manager.session_protection = 'basic'
@@ -46,14 +46,14 @@ def register_extensions(app):
 
 
 def register_blueprints(app):
-    from blog import main, auth
+    from coco import main, auth
     app.register_blueprint(auth.routes.blueprint, url_prefix='/api/auth')
     app.register_blueprint(main.routes.blueprint, url_prefix='/api')
 
 
 def register_error_handler(app):
-    from blog.utils.json_util import gen_error_json
-    from blog.errors import BAD_REQUEST, PERMISSION_FORBIDDEN, UNAUTHORIZED, NOT_FOUND, METHOD_NOT_ALLOWED
+    from coco.utils.json_util import gen_error_json
+    from coco.errors import BAD_REQUEST, PERMISSION_FORBIDDEN, UNAUTHORIZED, NOT_FOUND, METHOD_NOT_ALLOWED
 
     def bad_request(e):
         return gen_error_json(BAD_REQUEST)
@@ -87,5 +87,5 @@ def register_shell_context(app):
 
 
 def register_commands(app):
-    from blog import commands
+    from coco import commands
     app.cli.add_command(commands.test)

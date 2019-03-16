@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from .mixin import db, Model, SearchableMixin
 from .comment import Comment
-from blog.utils.other_utils import gen_slug
+from coco.utils.other_utils import gen_slug
 
 
 class Article(Model, SearchableMixin):

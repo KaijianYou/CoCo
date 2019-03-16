@@ -2,9 +2,9 @@ import unittest
 
 from json import loads
 
-from blog.app import create_app, db
-from blog.utils.json_util import gen_success_json, gen_error_json
-from blog.errors import PERMISSION_FORBIDDEN
+from coco import create_app, db
+from coco.utils.json_util import gen_success_json, gen_error_json
+from coco.errors import PERMISSION_FORBIDDEN
 
 
 class TestCase(unittest.TestCase):

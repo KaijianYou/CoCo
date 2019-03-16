@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField
 from wtforms.validators import InputRequired, Email, Length, EqualTo
 
-from blog.utils.form_util import PasswordRequired
+from coco.utils.form_util import PasswordRequired
 
 
 class LoginForm(FlaskForm):
@@ -24,4 +24,4 @@ class RequestPasswordResetForm(FlaskForm):
 class ResetPasswordForm(FlaskForm):
     password = PasswordField(validators=[InputRequired(), PasswordRequired()])
     password2 = PasswordField(validators=[InputRequired(), PasswordRequired(), EqualTo('password')])
-    
+

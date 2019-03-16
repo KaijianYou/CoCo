@@ -1,13 +1,12 @@
 import unittest
-from datetime import datetime
 
 from flask import url_for
 
-from blog.app import create_app, db
-from blog.models.article import Article
-from blog.models.comment import Comment
-from blog.models.message import Message
-from blog.utils.testing_utils import create_fake_data
+from coco import create_app, db
+from coco.models.article import Article
+from coco.models.comment import Comment
+from coco.models.message import Message
+from coco.utils.testing_utils import create_fake_data
 
 
 class TestCase(unittest.TestCase):

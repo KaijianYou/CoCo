@@ -2,8 +2,8 @@ from datetime import datetime
 
 from sqlalchemy.orm.interfaces import MapperExtension
 
-from blog.extensions import db
-from blog.search import query_index, add_to_index, remove_from_index
+from coco.extensions import db
+from coco.search import query_index, add_to_index, remove_from_index
 
 
 class ModelUpdateExtension(MapperExtension):

@@ -4,8 +4,8 @@ from threading import Thread
 
 from flask_login import current_user
 
-from blog.errors import PERMISSION_FORBIDDEN
-from blog.utils.json_util import gen_error_json
+from coco.errors import PERMISSION_FORBIDDEN
+from coco.utils.json_util import gen_error_json
 
 
 def async_task(func):
