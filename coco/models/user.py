@@ -40,24 +40,16 @@ role_permissions = {
 
 
 class User(Model, UserMixin):
+    """用户表"""
     __tablename__ = 'users'  # 因为 PostgreSQL 内置了一张 "user" 表，所以为了区分，这里使用 "users" 表名
 
-    nickname = db.Column(db.String(32), unique=True, nullable=False)
-    email = db.Column(db.String(64), unique=True, nullable=False)
-    password_hash = db.Column(db.String(128), nullable=False)
-    avatar_url = db.Column(db.String(512))
-    bio = db.Column(db.String(200))
-    role = db.Column(db.Integer, default=UserRole.GENERAL)
-
-    articles = db.relationship('Article', backref='author', lazy='dynamic')
-    comments = db.relationship('Comment', backref='author', lazy='dynamic')
-    message_sent = db.relationship(
-        'Message', foreign_keys='Message.sender_id', backref='sender', lazy='dynamic'
-    )
-    message_received = db.relationship(
-        'Message', foreign_keys='Message.recipient_id', backref='recipient', lazy='dynamic'
-    )
-    last_message_read_time = db.Column(db.DateTime)
+    nickname = db.Column(db.String(32), unique=True, nullable=False, comment='昵称')
+    email = db.Column(db.String(64), unique=True, nullable=False, comment='邮箱')
+    password_hash = db.Column(db.String(128), nullable=False, comment='密码')
+    avatar_url = db.Column(db.String(256), comment='头像URL')
+    bio = db.Column(db.String(200), comment='个人简历')
+    role = db.Column(db.SmallInteger(), default=UserRole.GENERAL, comment='用户角色')
+    last_message_read_time = db.Column(db.DateTime, comment='读最近一次消息的时间')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -86,28 +78,28 @@ class User(Model, UserMixin):
 
     @property
     def is_active(self):
-        return self.enabled
+        return self.deleted
 
     @property
     def is_authenticated(self):
-        return self.enabled and super().is_authenticated
+        return self.deleted and super().is_authenticated
 
     def can(self, permission):
         role_permission = role_permissions.get(self.role, None)
         return role_permission is not None and (role_permission & permission) == permission
 
     @classmethod
-    def get_by_email(cls, email, enabled=None):
+    def get_by_email(cls, email, deleted=None):
         query = cls.query
-        if enabled is not None:
-            query = query.filter_by(enabled=enabled)
+        if deleted is not None:
+            query = query.filter_by(deleted=deleted)
         return query.filter_by(email=email).first()
 
     @classmethod
-    def get_by_email_or_nickname(cls, email, nickname, enabled=None):
+    def get_by_email_or_nickname(cls, email, nickname, deleted=None):
         query = cls.query
-        if enabled is not None:
-            query = query.filter_by(enabled=enabled)
+        if deleted is not None:
+            query = query.filter_by(deleted=deleted)
         return query.filter(or_(cls.email == email, cls.nickname == nickname)).first()
 
     @classmethod
@@ -132,7 +124,7 @@ class User(Model, UserMixin):
     def new_messages(self):
         last_message_read_time = self.last_message_read_time or datetime(1900, 1, 1)
         return Message.query.filter_by(recipient=self)\
-            .filter(Message.utc_created > last_message_read_time)\
+            .filter(Message.created_time > last_message_read_time)\
             .count()
 
 

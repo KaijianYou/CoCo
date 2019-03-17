@@ -3,11 +3,15 @@ from .article import Article
 
 
 class Category(Model):
+    """分类表"""
     __tablename__ = 'category'
+    __table_args__ = (
+        db.UniqueConstraint('name', 'creator_id'),
+    )
 
-    name = db.Column(db.String(20), index=True, unique=True, nullable=False)
-
-    articles = db.relationship('Article', backref='category', lazy='dynamic')
+    name = db.Column(db.String(20), nullable=False, comment='名称')
+    is_nav = db.Column(db.Boolean(), default=False, comment='是否为导航')
+    creator_id = db.Column(db.Integer(), nullable=False, index=True, comment='外键，用户的ID')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

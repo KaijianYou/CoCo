@@ -111,7 +111,7 @@ class TestCase(unittest.TestCase):
         )
         json_data = response.get_json()
         self.assertTrue(json_data['success'])
-        user = User.get_by_email(admin_email, enabled=True)
+        user = User.get_by_email(admin_email, deleted=False)
         self.assertFalse(user is None)
         self.assertEqual(user.role, UserRole.ADMINISTRATOR)
 
@@ -256,5 +256,5 @@ class TestCase(unittest.TestCase):
         )
         json_data = response.get_json()
         self.assertTrue(json_data['success'])
-        user = User.get_by_id(1, enabled=True)
+        user = User.get_by_id(1, deleted=False)
         self.assertTrue(user.verify_password('123456789'))

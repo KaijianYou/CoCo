@@ -23,7 +23,7 @@ def create_fake_data():
         tags='好玩,程序员',
         author_id=user1.id,
         category_id=category2.id,
-        utc_created=datetime(2018, 1, 23)
+        created_time=datetime(2018, 1, 23)
     )
     article1.update(slug='01234567')
     article2 = Article.create(
@@ -33,7 +33,7 @@ def create_fake_data():
         tags='程序员,技术,招聘',
         author_id=user2.id,
         category_id=category2.id,
-        utc_created=datetime(2018, 8, 1)
+        created_time=datetime(2018, 8, 1)
     )
     article2.update(slug='12345678')
     article3 = Article.create(
@@ -43,7 +43,7 @@ def create_fake_data():
         tags='网络,技术,交易',
         author_id=user1.id,
         category_id=category1.id,
-        utc_created=datetime(2017, 5, 3)
+        created_time=datetime(2017, 5, 3)
     )
     article3.update(slug='23456789')
     Comment.create(body='多面几家试试', author_id=1, article_id=2)

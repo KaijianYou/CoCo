@@ -79,7 +79,7 @@ class TestConfig(Config):
     TESTING = True
 
     # 禁用表单 CSRF 保护
-    WTF_CSRF_ENABLED = False
+    WTF_CSRF_deleted = False
 
     # 数据库配置
     SQLALCHEMY_DATABASE_URI = os.environ['TEST_DATABASE_URI']

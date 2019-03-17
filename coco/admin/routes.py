@@ -1,4 +1,4 @@
 from flask import Blueprint
 
 
-blueprint = Blueprint('auth', __name__)
+blueprint = Blueprint('admin', __name__)

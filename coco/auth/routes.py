@@ -16,7 +16,7 @@ def login():
     form = LoginForm(meta={'csrf': False})
     if not form.validate_on_submit():
         return gen_error_json(errors.ILLEGAL_FORM)
-    user = User.get_by_email(form.email.data, enabled=True)
+    user = User.get_by_email(form.email.data, deleted=False)
     if user is not None and user.verify_password(form.password.data):
         login_user(user, remember=True)
         return gen_success_json()
@@ -29,7 +29,7 @@ def register():
     if not form.validate_on_submit():
         return gen_error_json(errors.ILLEGAL_FORM)
     email, nickname = form.email.data, form.nickname.data
-    user = User.get_by_email_or_nickname(email, nickname, enabled=True)
+    user = User.get_by_email_or_nickname(email, nickname, deleted=False)
     if user is not None:
         if user.nickname == nickname:
             return gen_error_json(errors.NICKNAME_ALREADY_USED)
@@ -62,7 +62,7 @@ def request_password_reset():
     if not form.validate_on_submit():
         return gen_error_json(errors.ILLEGAL_FORM)
 
-    user = User.get_by_email(form.email.data, enabled=True)
+    user = User.get_by_email(form.email.data, deleted=False)
     if not user:
         return gen_error_json(errors.EMAIL_NOT_REGISTERED)
 
@@ -93,7 +93,7 @@ def verify_password_token(token):
 def reset_password(user_id):
     if not current_user.is_anonymous:
         return gen_error_json(errors.ALREADY_LOGIN)
-    user = User.get_by_id(user_id, enabled=True)
+    user = User.get_by_id(user_id, deleted=False)
     if not user:
         return gen_error_json(errors.INTERNAL_ERROR)
     form = ResetPasswordForm(meta={'csrf': False})

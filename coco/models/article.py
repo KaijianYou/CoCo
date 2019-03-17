@@ -1,23 +1,41 @@
+import enum
 from datetime import timedelta
 
+from sqlalchemy_utils.types.choice import ChoiceType
+
+from coco.utils.other_utils import gen_slug
 from .mixin import db, Model, SearchableMixin
 from .comment import Comment
-from coco.utils.other_utils import gen_slug
+
+
+class ArticleStatus(enum.Enum):
+    Normal = 1
+    Draft = 2
+
+
+ArticleStatus.Normal.label = '正常'
+ArticleStatus.Draft.label = '草稿'
 
 
 class Article(Model, SearchableMixin):
+    """文章表"""
     __tablename__ = 'article'
     __searchable__ = ['body_text', 'tags', 'title']
 
-    slug = db.Column(db.String(16), index=True, nullable=False, unique=True)
-    title = db.Column(db.String(64), nullable=False)
-    body_text = db.Column(db.Text, nullable=False)
-    view_count = db.Column(db.Integer, default=0)
-    tags = db.Column(db.String(120), nullable=False)
-    category_id = db.Column(db.Integer, db.ForeignKey('category.id'), nullable=False)
-    author_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
-
-    comments = db.relationship('Comment', backref='article', lazy='dynamic')
+    slug = db.Column(db.String(16), index=True, nullable=False, unique=True, comment='Slug')
+    title = db.Column(db.String(200), nullable=False, comment='标题')
+    summary = db.Column(db.String(200), comment='摘要')
+    content = db.Column(db.Text, nullable=False, comment='正文')  # 正文必须用 Markdown 格式书写
+    status = db.Column(
+        db.SmallInteger(),
+        ChoiceType(ArticleStatus, impl=db.SmallInteger),
+        nullable=False,
+        default=ArticleStatus.Normal,
+        comment='状态'
+    )
+    view_count = db.Column(db.Integer(), nullable=False, default=0, comment='浏览数')
+    category_id = db.Column(db.SmallInteger(), nullable=False, index=True, comment='外键，分类的ID')
+    author_id = db.Column(db.Integer(), nullable=False, index=True, comment='外键，用户的ID')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -38,60 +56,57 @@ class Article(Model, SearchableMixin):
         return {
             'slug': self.slug,
             'title': self.title,
-            'bodyText': self.body_text,
+            'summary': self.summary,
+            'content': self.content,
             'viewCount': self.view_count,
-            'isEnabled': self.enabled,
-            'createDatetime': self.utc_created + timedelta(hours=8),
-            'updateDatetime': self.utc_updated + timedelta(hours=8),
-            'comments': [comment.to_dict() for comment in self.comments],
-            'category': self.category.name,
-            'tags': self.tags.split(',') if self.tags else [],
-            'author': self.author.nickname
+            'deleted': self.deleted,
+            'createTime': self.created_time + timedelta(hours=8),
+            'updateTime': self.updated_time + timedelta(hours=8)
         }
 
-    def paginate_comments(self, enabled=None, order='asc', page=1, per_page=10):
+    def paginate_comments(self, deleted=None, order='asc', page=1, per_page=10):
         query = self.comments
-        if enabled is not None:
-            query = query.filter_by(enabled=enabled)
+        if deleted is not None:
+            query = query.filter_by(deleted=deleted)
         order_param = Comment.id.asc() if order == 'asc' else Comment.id.desc()
         return query.order_by(order_param).paginate(page, per_page)
 
     @classmethod
-    def paginate(cls, enabled=None, order='asc', page=1, per_page=10):
+    def paginate(cls, deleted=None, order='asc', page=1, per_page=10):
         query = cls.query
-        if enabled is not None:
-            query = query.filter_by(enabled=enabled)
+        if deleted is not None:
+            query = query.filter_by(deleted=deleted)
         order_param = cls.id.asc() if order == 'asc' else cls.id.desc()
         return query.order_by(order_param).paginate(page, per_page)
 
     @classmethod
-    def paginate_by_tag(cls, tag, enabled=None, order='asc', page=1, per_page=10):
+    def paginate_by_tag(cls, tag, deleted=None, order='asc', page=1, per_page=10):
         query = cls.query.filter(cls.tags.like(f'%{tag}%'))
-        if enabled is not None:
-            query = query.filter_by(enabled=enabled)
+        if deleted is not None:
+            query = query.filter_by(deleted=deleted)
         order_param = cls.id.asc() if order == 'asc' else cls.id.desc()
         return query.order_by(order_param).paginate(page, per_page)
 
     @classmethod
-    def get_by_slug(cls, slug, enabled=None):
+    def get_by_slug(cls, slug, deleted=None):
         query = cls.query
-        if enabled is not None:
-            query = query.filter_by(enabled=enabled)
+        if deleted is not None:
+            query = query.filter_by(deleted=deleted)
         return query.filter_by(slug=slug).first()
 
     @classmethod
-    def list_tags(cls, enabled=None, order='asc'):
+    def list_tags(cls, deleted=None, order='asc'):
         query = cls.query
-        if enabled is not None:
-            query = query.filter_by(enabled=enabled)
+        if deleted is not None:
+            query = query.filter_by(deleted=deleted)
         order_param = cls.id.asc() if order == 'asc' else cls.id.desc()
         return query.order_by(order_param).with_entities(cls.tags).all()
 
     @classmethod
-    def get_by_title(cls, title, enabled=None):
+    def get_by_title(cls, title, deleted=None):
         query = cls.query
-        if enabled is not None:
-            query = query.filter_by(enabled=enabled)
+        if deleted is not None:
+            query = query.filter_by(deleted=deleted)
         return query.filter_by(title=title).first()
 
 

@@ -141,7 +141,7 @@ class TestCase(unittest.TestCase):
         json_data = response.get_json()
         self.assertTrue(json_data['success'])
 
-        article = Article.get_by_title(title='Flask框架初探', enabled=True)
+        article = Article.get_by_title(title='Flask框架初探', deleted=False)
         self.assertEqual(article.body_text, 'Flask框架是一个用Python实现的微框架。...')
         self.assertEqual(article.category_id, 1)
         self.assertEqual(article.tags, 'Python,Flask,Web')
@@ -169,7 +169,7 @@ class TestCase(unittest.TestCase):
         json_data = response.get_json()
         self.assertTrue(json_data['success'])
 
-        article = Article.get_by_id(1, enabled=True)
+        article = Article.get_by_id(1, deleted=False)
         self.assertEqual(article.title, '学习使用WebGL制作小游戏')
         self.assertEqual(article.body_text, '...')
         self.assertEqual(article.category_id, 2)
@@ -193,7 +193,7 @@ class TestCase(unittest.TestCase):
         json_data = response.get_json()
         self.assertTrue(json_data['success'])
         comment = Comment.get_by_id(1)
-        self.assertEqual(comment.enabled, False)
+        self.assertEqual(comment.deleted, False)
 
         response = self.client.post(
             url_for('main.review_comment', comment_id=1),
@@ -202,7 +202,7 @@ class TestCase(unittest.TestCase):
         json_data = response.get_json()
         self.assertTrue(json_data['success'])
         comment = Comment.get_by_id(1)
-        self.assertEqual(comment.enabled, True)
+        self.assertEqual(comment.deleted, True)
 
     def test_publish_comment(self):
         url = url_for('auth.login')
@@ -230,7 +230,7 @@ class TestCase(unittest.TestCase):
         json_data = response.get_json()
         self.assertTrue(json_data['success'])
 
-        comment = Comment.get_latest_by_article_id(article_id=1, enabled=True)
+        comment = Comment.get_latest_by_article_id(article_id=1, deleted=False)
         self.assertEqual(comment.body, new_comment_body)
 
     def test_modify_comment(self):
@@ -248,7 +248,7 @@ class TestCase(unittest.TestCase):
         )
         json_data = response.get_json()
         self.assertTrue(json_data['success'])
-        comment = Comment.get_by_id(1, enabled=True)
+        comment = Comment.get_by_id(1, deleted=False)
         self.assertEqual(comment.body, new_comment_body)
 
     def test_message_list(self):
@@ -283,6 +283,6 @@ class TestCase(unittest.TestCase):
         )
         json_data = response.get_json()
         self.assertTrue(json_data['success'])
-        message = Message.get_latest_by_sender_id(sender_id=1, enabled=True)
+        message = Message.get_latest_by_sender_id(sender_id=1, deleted=False)
         self.assertTrue(message is not None)
         self.assertEqual(message.recipient_id, 2)

@@ -47,7 +47,7 @@ def search_articles():
 
 @blueprint.route('/categories/', methods=['GET'])
 def category_list():
-    categories = Category.list_all(enabled=True)
+    categories = Category.list_all(deleted=False)
     data = {
         'categories': [category.to_dict() for category in categories]
     }
@@ -56,7 +56,7 @@ def category_list():
 
 @blueprint.route('/tags/', methods=['GET'])
 def tag_list():
-    tags_list = Article.list_tags(enabled=True)
+    tags_list = Article.list_tags(deleted=False)
     tags_set = set()
     for t in tags_list:
         tag_list = t[0].split(',') if t[0] else []
@@ -70,10 +70,10 @@ def tag_list():
 
 @blueprint.route('/archive', methods=['GET'])
 def archive():
-    articles = Article.list_all(enabled=True, order='desc')
+    articles = Article.list_all(deleted=False, order='desc')
     archive_dict = defaultdict(list)
     for article in articles:
-        article_create_datetime = article.utc_created + timedelta(hours=8)
+        article_create_datetime = article.created_time + timedelta(hours=8)
         archive_date_str = (f'{article_create_datetime.year}年'
                             f'{article_create_datetime.month}月')
         article_json = {
@@ -93,7 +93,7 @@ def archive():
 
 @blueprint.route('/articles/<string:article_slug>', methods=['GET'])
 def article_detail(article_slug):
-    article = Article.get_by_slug(article_slug, enabled=True)
+    article = Article.get_by_slug(article_slug, deleted=False)
     if not article:
         return gen_error_json(errors.ARTICLE_NOT_EXISTS)
 
@@ -110,7 +110,7 @@ def article_list():
     page = request.args.get('page', default=1, type=int)
     page_size = Constant.ARTICLE_PAGE_SIZE
     pagination = Article.paginate(
-        enabled=True,
+        deleted=False,
         order='desc',
         page=page,
         per_page=page_size
@@ -126,7 +126,7 @@ def article_list():
 
 @blueprint.route('/categories/<int:category_id>/articles/', methods=['GET'])
 def article_list_by_category_id(category_id):
-    category = Category.get_by_id(category_id, enabled=True)
+    category = Category.get_by_id(category_id, deleted=False)
     if not category:
         return gen_error_json(errors.CATEGORY_NOT_EXISTS)
     page = request.args.get('page', default=1, type=int)
@@ -162,7 +162,7 @@ def article_list_by_tag(tag):
 
 @blueprint.route('/articles/<string:article_slug>/comments', methods=['GET'])
 def comment_list_by_article_slug(article_slug):
-    article = Article.get_by_slug(article_slug, enabled=True)
+    article = Article.get_by_slug(article_slug, deleted=False)
     if not article:
         return gen_error_json(errors.ARTICLE_NOT_EXISTS)
     page = request.args.get('page', default=1, type=int)
@@ -205,7 +205,7 @@ def edit_article(article_slug):
     form = ArticleDetailForm(meta={'csrf': False})
     if not form.validate_on_submit():
         return gen_error_json(errors.ILLEGAL_FORM)
-    article = Article.get_by_slug(article_slug, enabled=True)
+    article = Article.get_by_slug(article_slug, deleted=False)
     if not article:
         return gen_error_json(errors.ARTICLE_NOT_EXISTS)
     article.update(
@@ -225,8 +225,8 @@ def review_comment(comment_id):
     comment = Comment.get_by_id(comment_id)
     if not comment:
         return gen_error_json(errors.COMMENT_NOT_EXISTS)
-    enabled = not comment.enabled
-    comment.update(enabled=enabled)
+    deleted = not comment.deleted
+    comment.update(deleted=deleted)
     return gen_success_json()
 
 
@@ -235,7 +235,7 @@ def review_comment(comment_id):
 @permission_required(UserPermission.COMMENT)
 def publish_comment(article_slug):
     """发表评论"""
-    article = Article.get_by_slug(article_slug, enabled=True)
+    article = Article.get_by_slug(article_slug, deleted=False)
     if not article:
         return gen_error_json(errors.ARTICLE_NOT_EXISTS)
     form = CommentDetailForm(meta={'csrf': False})
@@ -254,7 +254,7 @@ def publish_comment(article_slug):
 @permission_required(UserPermission.COMMENT)
 def modify_comment(comment_id):
     """修改评论"""
-    comment = Comment.get_by_id(comment_id, enabled=True)
+    comment = Comment.get_by_id(comment_id, deleted=False)
     if not comment:
         return gen_error_json(errors.COMMENT_NOT_EXISTS)
     if comment.author_id != current_user.id:
@@ -275,7 +275,7 @@ def send_message(recipient_id):
         return gen_error_json(errors.ILLEGAL_FORM)
     if current_user.id == recipient_id:
         return gen_error_json(errors.INTERNAL_ERROR)
-    user = User.get_by_id(recipient_id, enabled=True)
+    user = User.get_by_id(recipient_id, deleted=False)
     if not user:
         return gen_error_json(errors.USER_NOT_EXISTS)
     Message.create(sender=current_user, recipient=user, body=form.body.data)
