@@ -1,1 +1,1 @@
-from . import routes
+from . import auth, blog, comment, configure

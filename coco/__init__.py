@@ -46,10 +46,11 @@ def register_extensions(app):
 
 
 def register_blueprints(app):
-    from coco import blog, auth, admin
+    from coco import portal, auth, admin
     app.register_blueprint(auth.routes.blueprint, url_prefix='/api/auth')
-    app.register_blueprint(blog.routes.blueprint, url_prefix='/api/blog')
-    app.register_blueprint(admin.routes.blueprint, url_prefix='/api/admin')
+    app.register_blueprint(portal.routes.blueprint, url_prefix='/api/blog')
+    app.register_blueprint(admin.blog.routes.blueprint, url_prefix='/api/admin')
+    app.register_blueprint(admin.auth.routes.blueprint, url_prefix='/api/admin/auth')
 
 
 def register_error_handler(app):

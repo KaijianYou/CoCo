@@ -1,5 +1,3 @@
-import enum
-
 from .mixin import db, Model
 
 

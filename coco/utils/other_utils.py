@@ -31,3 +31,13 @@ def gen_slug(length=8):
     if hash_value < 0:
         hash_value = -hash_value
     return str(hash_value)[0:length]
+
+
+def page_meta_data(page, page_size, total):
+    return {
+        '_meta': {
+            'page': page,
+            'pageSize': page_size,
+            'total': total
+        }
+    }

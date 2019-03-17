@@ -5,7 +5,7 @@ from flask import Blueprint, request, url_for
 from flask_login import login_required, current_user
 
 from coco.utils.json_util import gen_success_json, gen_error_json
-from coco.utils.other_utils import permission_required
+from coco.utils.other_utils import permission_required, page_meta_data
 from coco.models.category import Category
 from coco.models.user import User, UserPermission
 from coco.models.article import Article
@@ -17,16 +17,6 @@ from .forms import CommentDetailForm, ArticleDetailForm, MessageForm
 
 
 blueprint = Blueprint('main', __name__)
-
-
-def meta_data(page, page_size, total):
-    return {
-        '_meta': {
-            'page': page,
-            'pageSize': page_size,
-            'total': total
-        }
-    }
 
 
 @blueprint.route('/articles/search', methods=['GET'])
@@ -41,7 +31,7 @@ def search_articles():
     data = {
         'articles': articles_json
     }
-    data.update(meta_data(page, page_size, total))
+    data.update(page_meta_data(page, page_size, total))
     return gen_success_json(data)
 
 
@@ -120,7 +110,7 @@ def article_list():
     data = {
         'articles': articles_json
     }
-    data.update(meta_data(page, page_size, pagination.total))
+    data.update(page_meta_data(page, page_size, pagination.total))
     return gen_success_json(data)
 
 
@@ -138,7 +128,7 @@ def article_list_by_category_id(category_id):
     data = {
         'articles': [article.to_dict() for article in articles]
     }
-    data.update(meta_data(page, page_size, pagination.total))
+    data.update(page_meta_data(page, page_size, pagination.total))
     return gen_success_json(data)
 
 
@@ -156,7 +146,7 @@ def article_list_by_tag(tag):
     data = {
         'articles': [article.to_dict() for article in articles]
     }
-    data.update(meta_data(page, page_size, pagination.total))
+    data.update(page_meta_data(page, page_size, pagination.total))
     return gen_success_json(data)
 
 
@@ -174,7 +164,7 @@ def comment_list_by_article_slug(article_slug):
     data = {
         'comments': [comment.to_dict() for comment in comments]
     }
-    data.update(meta_data(page, page_size, pagination.total))
+    data.update(page_meta_data(page, page_size, pagination.total))
     return gen_success_json(data)
 
 
@@ -299,5 +289,5 @@ def message_list(filter_type):
     data = {
         'messages': [message.to_dict() for message in pagination.items]
     }
-    data.update(meta_data(page, page_size, pagination.total))
+    data.update(page_meta_data(page, page_size, pagination.total))
     return gen_success_json(data)
