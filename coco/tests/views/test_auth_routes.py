@@ -4,7 +4,7 @@ from unittest.mock import MagicMock, patch
 from flask import url_for, current_app
 
 from coco import create_app, db
-from coco.models.user import User, UserRole
+from coco.models.auth_user import AuthUser, UserGroup
 from coco.utils.testing_utils import create_user_data
 from coco.utils.email_util import EmailUtil
 
@@ -111,9 +111,9 @@ class TestCase(unittest.TestCase):
         )
         json_data = response.get_json()
         self.assertTrue(json_data['success'])
-        user = User.get_by_email(admin_email, deleted=False)
+        user = AuthUser.get_by_email(admin_email, deleted=False)
         self.assertFalse(user is None)
-        self.assertEqual(user.role, UserRole.ADMINISTRATOR)
+        self.assertEqual(user.role, UserGroup.Admin)
 
     def test_logout(self):
         # 登录
@@ -176,7 +176,7 @@ class TestCase(unittest.TestCase):
     def test_request_password_reset(self):
         EmailUtil.send_password_reset_email = MagicMock(name='send_password_reset_email')
         # patch 会被调用到的方法，设置它们的返回值
-        with patch.object(User, 'get_password_reset_token', return_value='I am a token'):
+        with patch.object(AuthUser, 'get_password_reset_token', return_value='I am a token'):
             response = self.client.post(
                 url_for('auth.request_password_reset'),
                 data={
@@ -256,5 +256,5 @@ class TestCase(unittest.TestCase):
         )
         json_data = response.get_json()
         self.assertTrue(json_data['success'])
-        user = User.get_by_id(1, deleted=False)
+        user = AuthUser.get_by_id(1, deleted=False)
         self.assertTrue(user.verify_password('123456789'))

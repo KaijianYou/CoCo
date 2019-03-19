@@ -36,21 +36,32 @@ def register_extensions(app):
     elasticsearch_url = app.config['ELASTICSEARCH_URL']
     setattr(app, 'elasticsearch', Elasticsearch([elasticsearch_url]) if elasticsearch_url else None)
 
-    from .models.user import User, AnonymousUser
+    from .models.auth_user import AuthUser, AnonymousUser
     login_manager.session_protection = 'basic'
     login_manager.anonymous_user = AnonymousUser
 
     @login_manager.user_loader
     def load_user(user_id):
-        return User.get_by_id(int(user_id))
+        return AuthUser.get_by_id(int(user_id))
 
 
 def register_blueprints(app):
-    from coco import portal, auth, admin
-    app.register_blueprint(auth.routes.blueprint, url_prefix='/api/auth')
-    app.register_blueprint(portal.routes.blueprint, url_prefix='/api/blog')
-    app.register_blueprint(admin.blog.routes.blueprint, url_prefix='/api/admin')
-    app.register_blueprint(admin.auth.routes.blueprint, url_prefix='/api/admin/auth')
+    from coco.admin import (
+        blog as admin_blog,
+        comment as admin_comment,
+        website_config as admin_config,
+        auth as admin_auth,
+    )
+    from coco.portal import (
+        auth as portal_auth,
+        blog as portal_blog,
+    )
+    app.register_blueprint(portal_auth.routes.blueprint, url_prefix='/api/auth')
+    app.register_blueprint(portal_blog.routes.blueprint, url_prefix='/api/blog')
+    app.register_blueprint(admin_auth.routes.blueprint, url_prefix='/api/admin/auth')
+    app.register_blueprint(admin_blog.routes.blueprint, url_prefix='/api/admin/blog')
+    app.register_blueprint(admin_config.routes.blueprint, url_prefix='/api/admin/config')
+    app.register_blueprint(admin_comment.routes.blueprint, url_prefix='/api/admin/comment')
 
 
 def register_error_handler(app):
@@ -91,3 +102,4 @@ def register_shell_context(app):
 def register_commands(app):
     from coco import commands
     app.cli.add_command(commands.test)
+    app.cli.add_command(commands.create_super_admin)

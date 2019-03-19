@@ -1,20 +1,19 @@
 from datetime import datetime
 
-from coco.models.user import User, UserRole
+from coco.models.auth_user import AuthUser, UserGroup
 from coco.models.category import Category
 from coco.models.article import Article
 from coco.models.comment import Comment
-from coco.models.message import Message
 
 
 def create_fake_data():
-    user1 = User.create(
+    user1 = AuthUser.create(
         nickname='panda',
         email='panda@gmail.com',
         password='123456',
-        role=UserRole.ADMINISTRATOR
+        role=UserGroup.Admin
     )
-    user2 = User.create(nickname='lori', email='lori@gmail.com', password='000000')
+    user2 = AuthUser.create(nickname='lori', email='lori@gmail.com', password='000000')
     category1 = Category.create(name='杂谈')
     category2 = Category.create(name='计算机')
     article1 = Article.create(
@@ -51,11 +50,8 @@ def create_fake_data():
     Comment.create(body='可以学习three.js', author_id=2, article_id=1)
     Comment.create(body='给我一份简历', author_id=1, article_id=2)
 
-    Message.create(sender=user1, recipient=user2, body='您好，能提供这份教程的中文版吗？')
-    Message.create(sender=user2, recipient=user1, body='这篇文章有很多错误：一是...；二是；最后是……')
-
 
 def create_user_data():
-    User.create(nickname='panda', email='panda@gmail.com', password='123456')
-    User.create(nickname='dog', email='dog@gmail.com', password='000000')
+    AuthUser.create(nickname='panda', email='panda@gmail.com', password='123456')
+    AuthUser.create(nickname='dog', email='dog@gmail.com', password='000000')
 

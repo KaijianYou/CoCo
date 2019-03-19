@@ -5,7 +5,6 @@ from flask import url_for
 from coco import create_app, db
 from coco.models.article import Article
 from coco.models.comment import Comment
-from coco.models.message import Message
 from coco.utils.testing_utils import create_fake_data
 
 
@@ -250,39 +249,3 @@ class TestCase(unittest.TestCase):
         self.assertTrue(json_data['success'])
         comment = Comment.get_by_id(1, deleted=False)
         self.assertEqual(comment.body, new_comment_body)
-
-    def test_message_list(self):
-        url = url_for('auth.login')
-        response = self.client.post(url, data={'email': 'panda@gmail.com', 'password': '123456'})
-        json_data = response.get_json()
-        self.assertTrue(json_data['success'])
-
-        url = url_for('main.message_list', filter_type='sent')
-        response = self.client.get(url)
-        json_data = response.get_json()
-        message_ids = [message['id'] for message in json_data['data']['messages']]
-        self.assertEqual([1], message_ids)
-
-        url = url_for('main.message_list', filter_type='received')
-        response = self.client.get(url)
-        json_data = response.get_json()
-        message_ids = [message['id'] for message in json_data['data']['messages']]
-        self.assertEqual([2], message_ids)
-
-    def test_send_message(self):
-        url = url_for('auth.login')
-        response = self.client.post(url, data={'email': 'panda@gmail.com', 'password': '123456'})
-        json_data = response.get_json()
-        self.assertTrue(json_data['success'])
-
-        url = url_for('main.send_message', recipient_id=2)
-        response = self.client.post(url,
-            data={
-                'body': '迪迦奥特曼'
-            }
-        )
-        json_data = response.get_json()
-        self.assertTrue(json_data['success'])
-        message = Message.get_latest_by_sender_id(sender_id=1, deleted=False)
-        self.assertTrue(message is not None)
-        self.assertEqual(message.recipient_id, 2)

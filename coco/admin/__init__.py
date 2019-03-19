@@ -1,1 +1,1 @@
-from . import auth, blog, comment, configure
+from . import auth, blog, comment, website_config

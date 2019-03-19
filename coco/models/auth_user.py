@@ -8,54 +8,45 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from sqlalchemy import or_
 
 from .mixin import db, Model
-from .message import Message
 
 
-class UserPermission:
-    ADMIN = 0x1
-    COMMENT = 0x2
-    PUBLISH_ARTICLE = 0x4
-    REVIEW_COMMENT = 0x8
-    MESSAGE = 0x10
+class UserGroupPermission:
+    All = 0x1
+    WriteComment = 0x2
 
 
-class UserRole:
-    GENERAL = 1
-    ADMINISTRATOR = 2
+class UserGroup:
+    Admin = 1
+    Visitor = 2
 
 
-role_permissions = {
-    UserRole.GENERAL: (
-        UserPermission.COMMENT,
-        UserPermission.MESSAGE
+GROUP_PERMISSIONS = {
+    UserGroup.Visitor: (
+        UserGroupPermission.WriteComment,
     ),
-    UserRole.ADMINISTRATOR: (
-        UserPermission.ADMIN |
-        UserPermission.COMMENT |
-        UserPermission.PUBLISH_ARTICLE |
-        UserPermission.REVIEW_COMMENT |
-        UserPermission.MESSAGE
-    )
+    UserGroup.Admin: (
+        UserGroupPermission.All,
+    ),
 }
 
 
-class User(Model, UserMixin):
+class AuthUser(Model, UserMixin):
     """用户表"""
-    __tablename__ = 'users'  # 因为 PostgreSQL 内置了一张 "user" 表，所以为了区分，这里使用 "users" 表名
+    __tablename__ = 'auth_user'
 
-    nickname = db.Column(db.String(32), unique=True, nullable=False, comment='昵称')
-    email = db.Column(db.String(64), unique=True, nullable=False, comment='邮箱')
+    username = db.Column(db.String(32), unique=True, nullable=False, comment='用户名')
+    email = db.Column(db.String(254), unique=True, nullable=False, comment='邮箱')  # 254 这个限制源自 RFC3696
     password_hash = db.Column(db.String(128), nullable=False, comment='密码')
-    avatar_url = db.Column(db.String(256), comment='头像URL')
-    bio = db.Column(db.String(200), comment='个人简历')
-    role = db.Column(db.SmallInteger(), default=UserRole.GENERAL, comment='用户角色')
-    last_message_read_time = db.Column(db.DateTime, comment='读最近一次消息的时间')
+    avatar_url = db.Column(db.String(256), default='', comment='头像URL')
+    bio = db.Column(db.String(200), default='', comment='个人简介')
+    group = db.Column(db.SmallInteger(), comment='用户组')
+    last_login_time = db.Column(db.DateTime(False), nullable=False, default=datetime.utcnow, comment='上次登录时间')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
     def __repr__(self):
-        return f'<User({self.nickname!r})>'
+        return f'<AuthUser({self.nickname!r})>'
 
     def get_id(self):
         return self.id
@@ -78,15 +69,18 @@ class User(Model, UserMixin):
 
     @property
     def is_active(self):
-        return self.deleted
+        return not self.deleted
 
     @property
     def is_authenticated(self):
-        return self.deleted and super().is_authenticated
+        return self.is_active and super().is_authenticated
 
     def can(self, permission):
-        role_permission = role_permissions.get(self.role, None)
-        return role_permission is not None and (role_permission & permission) == permission
+        group_permission = GROUP_PERMISSIONS.get(self.group, 0)
+        return (group_permission & permission) == permission
+
+    def update_last_login_time(self):
+        self.last_login_time = datetime.utcnow()
 
     @classmethod
     def get_by_email(cls, email, deleted=None):
@@ -96,11 +90,18 @@ class User(Model, UserMixin):
         return query.filter_by(email=email).first()
 
     @classmethod
-    def get_by_email_or_nickname(cls, email, nickname, deleted=None):
+    def get_by_email_or_username(cls, email, username, deleted=None):
         query = cls.query
         if deleted is not None:
             query = query.filter_by(deleted=deleted)
-        return query.filter(or_(cls.email == email, cls.nickname == nickname)).first()
+        return query.filter(or_(cls.email == email, cls.username == username)).first()
+
+    @classmethod
+    def get_by_username(cls, username, deleted=None):
+        query = cls.query
+        if deleted is not None:
+            query = query.filter_by(deleted=deleted)
+        return query.filter_by(username=username).first()
 
     @classmethod
     def get_password_reset_token(cls, user_id, expire_in_seconds=30*60):
@@ -119,13 +120,7 @@ class User(Model, UserMixin):
             )['reset_password']
         except Exception:
             return None
-        return User.get_by_id(user_id)
-
-    def new_messages(self):
-        last_message_read_time = self.last_message_read_time or datetime(1900, 1, 1)
-        return Message.query.filter_by(recipient=self)\
-            .filter(Message.created_time > last_message_read_time)\
-            .count()
+        return AuthUser.get_by_id(user_id)
 
 
 class AnonymousUser(AnonymousUserMixin):

@@ -5,11 +5,11 @@ class Tag(Model):
     """标签表"""
     __tablename__ = 'tag'
     __table_args__ = (
-        db.UniqueConstraint('name', 'creator_id'),
+        db.UniqueConstraint('author_id', 'name', 'deleted'),
     )
 
-    name = db.Column(db.String(10), nullable=False, comment='名称')
-    creator_id = db.Column(db.Integer(), nullable=False, index=True, comment='用户的ID')
+    author_id = db.Column(db.Integer(), nullable=False, index=True, comment='用户的ID')
+    name = db.Column(db.String(10), nullable=False, unique=True, comment='名称')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

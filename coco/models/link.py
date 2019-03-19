@@ -9,8 +9,6 @@ class LinkWeight(enum.Enum):
     One = 1
     Two = 2
     Three = 3
-    Four = 4
-    Five = 5
 
 
 class Link(Model):
@@ -26,7 +24,6 @@ class Link(Model):
         default=LinkWeight.One,
         comment='权重'
     )  # 权重越高，展示位置越靠前
-    creator_id = db.Column(db.Integer(), nullable=False, index=True, comment='外键，用户的ID')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
